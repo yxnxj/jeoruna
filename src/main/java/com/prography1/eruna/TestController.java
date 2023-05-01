@@ -27,7 +27,7 @@ public class TestController {
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
-    @PostMapping("/upload")
+    @PostMapping("/s3/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
             String fileName=file.getOriginalFilename();
