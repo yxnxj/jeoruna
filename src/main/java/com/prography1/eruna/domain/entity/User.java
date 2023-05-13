@@ -2,11 +2,9 @@ package com.prography1.eruna.domain.entity;
 
 import com.prography1.eruna.domain.enums.Role;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -25,4 +23,8 @@ public class User extends BaseTimeEntity{
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    public static User join(String uuid){
+        return User.builder().uuid(uuid).role(Role.USER).build();
+    }
 }
