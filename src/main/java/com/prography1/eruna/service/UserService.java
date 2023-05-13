@@ -15,9 +15,9 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public String joinByUUID() {
+    public String joinByUUID(String fcmToken) {
         String uuidToken = UUID.randomUUID().toString();
-        User user = User.join(uuidToken);
+        User user = User.join(uuidToken, fcmToken);
         userRepository.save(user);
         return uuidToken;
     }
