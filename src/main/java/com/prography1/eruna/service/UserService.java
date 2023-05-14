@@ -33,11 +33,10 @@ public class UserService {
 
 
     /**
-     * add by ChoYeonJun
+     * ChoYeonJun add
      *
      * 알람을 깨우는 푸시 메시지를 firebase cloud messaging API를 통해 보낸다.
      * TODO : 푸시 메시지 문구 협의 필요
-     *
      */
 
     public void pushMessage(String fcmToken) {
@@ -55,13 +54,10 @@ public class UserService {
     }
 
     /**
-     *
-     * add by ChoYeonJun
+     * ChoYeonJun add
      * 임의의 메시지를 보내 token이 유효한지 체크한다
      *
      * TODO : 빈 데이터를 가진 임의의 메시지 인스턴스가 클라이언트단에 어떻게 전달이 되는지 확인 필요
-     * @param fcmToken
-     * @return
      */
     public Boolean isValidFCMToken(String fcmToken) {
         Message message = Message.builder().setToken(fcmToken).build();
