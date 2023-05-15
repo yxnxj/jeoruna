@@ -69,4 +69,7 @@ public class UserService {
             return false;
         }
     }
+    public boolean isUserExist(String uuid){
+        return userRepository.existsByUuid(uuid);
+    }
 }
