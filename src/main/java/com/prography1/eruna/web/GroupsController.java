@@ -21,7 +21,7 @@ public class GroupsController {
         String uuid = groupJoinUserInfo.getUuid();
         if(!userService.isUserExist(uuid)) return new BaseResponse<>(BaseResponseStatus.INVALID_UUID_TOKEN);
         String nickname = groupJoinUserInfo.getNickname();
-        if(!groupsService.isDuplicatedNickname(code, nickname)) return new BaseResponse<>(BaseResponseStatus.DUPLICATED_NICKNAME);
+        if(groupsService.isDuplicatedNickname(code, nickname)) return new BaseResponse<>(BaseResponseStatus.DUPLICATED_NICKNAME);
 
         groupsService.joinGroupUser(code, uuid, nickname, groupJoinUserInfo.getPhoneNum());
         return new BaseResponse("ok");
