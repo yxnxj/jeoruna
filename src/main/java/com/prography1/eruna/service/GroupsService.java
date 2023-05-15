@@ -37,13 +37,14 @@ public class GroupsService {
                 .groupId(group.getId())
                 .userId(user.getId())
                 .build();
-        return GroupUser.builder()
+        GroupUser groupUser = GroupUser.builder()
                 .groupUserId(groupUserId)
                 .user(user)
                 .groups(group)
                 .nickname(nickname)
                 .phoneNum(phoneNum)
                 .build();
+        return groupUserRepository.save(groupUser);
     }
 
 }
