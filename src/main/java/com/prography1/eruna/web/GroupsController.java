@@ -23,6 +23,7 @@ public class GroupsController {
         String nickname = groupJoinUserInfo.getNickname();
         if(!groupsService.isDuplicatedNickname(code, nickname)) return new BaseResponse<>(BaseResponseStatus.DUPLICATED_NICKNAME);
 
+        groupsService.joinGroupUser(code, uuid, nickname, groupJoinUserInfo.getPhoneNum());
         return new BaseResponse("ok");
     }
 }
