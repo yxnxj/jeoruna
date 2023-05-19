@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.io.Serializable;
 
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
@@ -30,8 +29,19 @@ public class GroupUser extends BaseTimeEntity{
     @Embeddable
     @NoArgsConstructor
     @EqualsAndHashCode
+    @AllArgsConstructor
+    @Builder
     public static class GroupUserId implements Serializable {
         private Long groupId;
         private Long userId;
+    }
+
+    @Builder
+    public GroupUser(Groups groups, User user, String nickname, String phoneNum, GroupUserId groupUserId) {
+        this.groups = groups;
+        this.user = user;
+        this.nickname = nickname;
+        this.phoneNum = phoneNum;
+        this.groupUserId = groupUserId;
     }
 }
