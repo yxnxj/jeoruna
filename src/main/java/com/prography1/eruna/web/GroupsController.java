@@ -33,4 +33,11 @@ public class GroupsController {
         System.err.println(e.getClass());
         return new BaseResponse<>(e.getStatus());
     }
+
+    @GetMapping("/{code}/nickname-valid/{nickname}")
+    public BaseResponse<GroupResDto.IsValidNickname> isValidNickname(@PathVariable String code, @PathVariable String nickname){
+        if(groupsService.isDuplicatedNickname(code, nickname)) return new BaseResponse<>(new GroupResDto.IsValidNickname(false));
+
+        return new BaseResponse<>(new GroupResDto.IsValidNickname(true));
+    }
 }
