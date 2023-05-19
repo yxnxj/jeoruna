@@ -10,8 +10,10 @@ import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class GroupsService {
     private final UserRepository userRepository;

@@ -14,14 +14,11 @@ public class GroupsReqDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class GroupJoinUserInfo {
-        @Schema(description = "그룹에 참여하는 유저 정보",
-                example = "{\n" +
-                "\t\"uuid\": \"1111-AAAA-UUID-1234\",\n" +
-                "\t\"nickname\" : \"닉네임1\",\n" +
-                "\t\"phoneNum\" : \"01012345678\"\n" +
-                "}")
+        @Schema(description = "그룹에 참여하는 유저 uuid", example = "1111-AAAA-UUID-1234")
         private String uuid;
+        @Schema(description = "새 유저 닉네임", example = "닉네임1")
         private String nickname;
+        @Schema(description = "유저 전화번호", example ="01012345678")
         private String phoneNum;
     }
 }
