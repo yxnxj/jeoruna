@@ -8,6 +8,7 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
+@Builder
 public class GroupUser extends BaseTimeEntity{
     @EmbeddedId
     private GroupUserId groupUserId;
@@ -28,8 +29,8 @@ public class GroupUser extends BaseTimeEntity{
 
     @Embeddable
     @NoArgsConstructor
-    @EqualsAndHashCode
     @AllArgsConstructor
+    @EqualsAndHashCode
     @Builder
     public static class GroupUserId implements Serializable {
         private Long groupId;

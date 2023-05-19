@@ -1,6 +1,7 @@
 package com.prography1.eruna.web;
 
 import com.prography1.eruna.response.BaseResponse;
+import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,4 +26,13 @@ public class UserController {
         return new BaseResponse<>(new UUID(userService.joinByUUID(fcmToken.getFcmToken())));
     }
 
+    @PostMapping("/push")
+    public BaseResponse<String> pushMessage(@RequestBody FcmToken fcmToken){
+        String token = fcmToken.getFcmToken();
+        if(!userService.isValidFCMToken(token))
+            return new BaseResponse<>(BaseResponseStatus.INVALID_FCM_TOKEN);
+
+        userService.pushMessage(token);
+        return new BaseResponse<>("ok");
+    }
 }
