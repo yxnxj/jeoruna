@@ -24,12 +24,12 @@ public class GroupsController {
         if(groupsService.isDuplicatedNickname(code, nickname)) throw new BaseException(BaseResponseStatus.DUPLICATED_NICKNAME);
 
         groupsService.joinGroupUser(code, uuid, nickname, groupJoinUserInfo.getPhoneNum());
-        return new BaseResponse("ok");
+        return new BaseResponse<>("ok");
     }
 
 
     @ExceptionHandler(BaseException.class)
-    public Object nullex(BaseException e) {
+    public BaseResponse<?> handleBaseException(BaseException e) {
         System.err.println(e.getClass());
         return new BaseResponse<>(e.getStatus());
     }
