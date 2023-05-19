@@ -5,6 +5,8 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.prography1.eruna.domain.entity.User;
 import com.prography1.eruna.domain.repository.UserRepository;
+import com.prography1.eruna.response.BaseException;
+import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.web.UserReqDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,5 +70,12 @@ public class UserService {
             log.error("Firebase token verification exception", fme);
             return false;
         }
+    }
+    public boolean isUserExist(String uuid){
+        return userRepository.existsByUuid(uuid);
+    }
+
+    public User findByUUID(String uuid){
+        return userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
     }
 }
