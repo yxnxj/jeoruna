@@ -57,11 +57,14 @@ public class UserService {
                 .setToken(fcmToken)
 //                .putData("body", "일어나세요!")
                 .build();
-
         try {
-            firebaseMessaging.send(msg);
+            String response = firebaseMessaging.send(msg);
+            log.info("response : " + response);
+            return response;
         } catch (FirebaseMessagingException e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage());
+            return e.getMessage();
+//            throw new BaseException(BaseResponseStatus.INVALID_FCM_TOKEN);
         }
     }
 
@@ -74,7 +77,7 @@ public class UserService {
     public Boolean isValidFCMToken(String fcmToken) {
         Message message = Message.builder().setToken(fcmToken).build();
         try {
-            FirebaseMessaging.getInstance().send(message);
+            firebaseMessaging.send(message);
             return true;
         } catch (FirebaseMessagingException fme) {
             log.error("Firebase token verification exception", fme);
