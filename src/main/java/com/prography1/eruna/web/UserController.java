@@ -32,7 +32,7 @@ public class UserController {
         if(!userService.isValidFCMToken(token))
             return new BaseResponse<>(BaseResponseStatus.INVALID_FCM_TOKEN);
 
-        userService.pushMessage(token);
-        return new BaseResponse<>("ok");
+        String response = userService.pushMessage(token);
+        return new BaseResponse<>(response);
     }
 }
