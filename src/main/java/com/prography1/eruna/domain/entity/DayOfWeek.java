@@ -22,6 +22,7 @@ public class DayOfWeek extends BaseTimeEntity{
     @Embeddable
     @NoArgsConstructor
     @EqualsAndHashCode
+    @AllArgsConstructor
     public static class DayOfWeekId implements Serializable {
         private Long alarmId;
 
