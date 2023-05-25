@@ -16,8 +16,6 @@ public class Groups extends BaseTimeEntity{
     @Column(unique = true)
     private String code;
 
-    private String name;
-
     private String penalty;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,9 +23,8 @@ public class Groups extends BaseTimeEntity{
     private User host;
 
     @Builder
-    public Groups(String code, String name, String penalty, User host) {
+    public Groups(String code, String penalty, User host) {
         this.code = code;
-        this.name = name;
         this.penalty = penalty;
         this.host = host;
     }
