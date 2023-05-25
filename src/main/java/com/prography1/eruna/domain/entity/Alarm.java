@@ -32,8 +32,7 @@ public class Alarm extends BaseTimeEntity{
     @Temporal(TemporalType.TIME)
     private LocalTime alarmTime;
 
-    @ColumnDefault("'Y'")
-    private String alarmRepeat;
+    private Boolean alarmRepeat;
 
     @Builder
     public Alarm(Groups groups, LocalDate startDate, LocalDate finishDate, String alarmSound,
@@ -43,6 +42,6 @@ public class Alarm extends BaseTimeEntity{
         this.finishDate = finishDate;
         this.alarmSound = alarmSound;
         this.alarmTime = alarmTime;
-        this.alarmRepeat = "Y";
+        this.alarmRepeat = true;
     }
 }
