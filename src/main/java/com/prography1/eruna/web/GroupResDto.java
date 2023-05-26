@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.List;
+
 public class GroupResDto {
 
     private GroupResDto(){}
@@ -22,6 +24,15 @@ public class GroupResDto {
     public static class IsValidNickname {
         @Schema(description = "nickname 중복 여부 boolean 값, true를 반환하면 사용 가능한 닉네임이다", example = "true")
         private Boolean isValid;
+
+    }
+
+    @Schema(title = "패널티 목록")
+    @Getter
+    @AllArgsConstructor
+    public static class PenaltyList {
+        @Schema(description = "패널티 목록", example = "penalty-list : [ \"커피쏘기\", \"소원 들어주기\" ]")
+        private List<String> penaltyList;
 
     }
 }

@@ -1,6 +1,7 @@
 package com.prography1.eruna.service;
 
 import com.prography1.eruna.domain.entity.*;
+import com.prography1.eruna.domain.enums.Penalty;
 import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.prography1.eruna.web.GroupReqDto.*;
@@ -91,4 +93,9 @@ public class GroupService {
         return groupUserRepository.save(groupUser);
     }
 
+    public List<String> findPenaltyList() {
+        List<String> penaltyList = new ArrayList<>();
+        Arrays.stream(Penalty.values()).forEach(item -> penaltyList.add(item.getDetail()));
+        return penaltyList;
+    }
 }
