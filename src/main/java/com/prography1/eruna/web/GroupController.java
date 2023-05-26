@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import static com.prography1.eruna.web.GroupReqDto.*;
 import static com.prography1.eruna.web.GroupResDto.*;
 
@@ -32,6 +34,13 @@ public class GroupController {
         return new BaseResponse<>(createdGroup);
     }
 
+    @Operation(summary = "패널티 목록 조회", description = "패널티 목록 조회")
+    @GetMapping("/penalty-list")
+    public BaseResponse<PenaltyList> findPenaltyList(){
+        List<String> penaltyList = groupService.findPenaltyList();
+        return new BaseResponse<>(new PenaltyList(penaltyList));
+    }
+
     @PostMapping("/{code}")
     public BaseResponse<String> userJoinGroup(@PathVariable String code, @RequestBody GroupJoinUserInfo groupJoinUserInfo){
         if(!groupService.isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
@@ -46,7 +55,7 @@ public class GroupController {
 
 
     @ExceptionHandler(BaseException.class)
-    public BaseResponse<?> handleBaseException(BaseException e) {
+    public BaseResponse<String> handleBaseException(BaseException e) {
         log.info(e.getClass().toString());
         return new BaseResponse<>(e.getStatus());
     }

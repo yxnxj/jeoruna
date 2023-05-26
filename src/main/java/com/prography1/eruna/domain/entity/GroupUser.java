@@ -5,10 +5,10 @@ import lombok.*;
 
 import java.io.Serializable;
 
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-@Builder
 public class GroupUser extends BaseTimeEntity{
     @EmbeddedId
     private GroupUserId groupUserId;
