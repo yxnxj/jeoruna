@@ -1,5 +1,6 @@
 package com.prography1.eruna.web;
 
+import com.prography1.eruna.domain.entity.Groups;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponse;
 import com.prography1.eruna.response.BaseResponseStatus;
@@ -66,6 +67,14 @@ public class GroupController {
 
         return new BaseResponse<>(new GroupResDto.IsValidNickname(true));
     }
+
+    @Operation(summary = "그룹 정보 조회", description = "그룹 정보 조회")
+    @GetMapping("/info/{groupId}")
+    public BaseResponse<GroupInfo> findGroupInfo(@PathVariable Long groupId){
+        Groups group = groupService.findGroupById(groupId);
+        return new BaseResponse<>(GroupInfo.fromGroup(group));
+    }
+
 
 
 

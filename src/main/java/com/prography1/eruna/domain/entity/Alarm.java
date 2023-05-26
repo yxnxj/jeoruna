@@ -2,10 +2,11 @@ package com.prography1.eruna.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -17,7 +18,7 @@ public class Alarm extends BaseTimeEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="group_id")
     private Groups groups;
 
@@ -33,6 +34,10 @@ public class Alarm extends BaseTimeEntity{
     private LocalTime alarmTime;
 
     private Boolean alarmRepeat;
+
+    @OneToMany(mappedBy="alarm", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<DayOfWeek> weekList = new ArrayList<>();
+
 
     @Builder
     public Alarm(Groups groups, LocalDate startDate, LocalDate finishDate, String alarmSound,

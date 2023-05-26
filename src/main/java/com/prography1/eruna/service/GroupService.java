@@ -98,4 +98,8 @@ public class GroupService {
         Arrays.stream(Penalty.values()).forEach(item -> penaltyList.add(item.getDetail()));
         return penaltyList;
     }
+
+    public Groups findGroupById(Long groupId) {
+        return groupRepository.findById(groupId).orElseThrow(()-> new BaseException(NOT_FOUND_GROUP));
+    }
 }
