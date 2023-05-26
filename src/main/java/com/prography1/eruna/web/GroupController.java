@@ -1,14 +1,15 @@
 package com.prography1.eruna.web;
 
+import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponse;
+import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.GroupService;
+import com.prography1.eruna.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
 
 import static com.prography1.eruna.web.GroupReqDto.*;
 import static com.prography1.eruna.web.GroupResDto.*;
@@ -18,9 +19,11 @@ import static com.prography1.eruna.web.GroupResDto.*;
 @RequiredArgsConstructor
 @Tag(name="Group",description = "알람 그룹 API")
 @RequestMapping("/group")
+@Slf4j
 public class GroupController {
 
     private final GroupService groupService;
+    private final UserService userService;
 
     @Operation(summary = "그룹 만들기", description = "알람 그룹 만들기")
     @PostMapping("")
@@ -28,5 +31,33 @@ public class GroupController {
         CreatedGroup createdGroup = new CreatedGroup(groupService.createGroup(createGroup));
         return new BaseResponse<>(createdGroup);
     }
+
+    @PostMapping("/{code}")
+    public BaseResponse<String> userJoinGroup(@PathVariable String code, @RequestBody GroupJoinUserInfo groupJoinUserInfo){
+        if(!groupService.isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
+        String uuid = groupJoinUserInfo.getUuid();
+        if(!userService.isUserExist(uuid)) throw new BaseException(BaseResponseStatus.INVALID_UUID_TOKEN);
+        String nickname = groupJoinUserInfo.getNickname();
+        if(groupService.isDuplicatedNickname(code, nickname)) throw new BaseException(BaseResponseStatus.DUPLICATED_NICKNAME);
+
+        groupService.joinGroupUser(code, uuid, nickname, groupJoinUserInfo.getPhoneNum());
+        return new BaseResponse<>("ok");
+    }
+
+
+    @ExceptionHandler(BaseException.class)
+    public BaseResponse<?> handleBaseException(BaseException e) {
+        log.info(e.getClass().toString());
+        return new BaseResponse<>(e.getStatus());
+    }
+
+    @GetMapping("/{code}/nickname-valid/{nickname}")
+    public BaseResponse<GroupResDto.IsValidNickname> isValidNickname(@PathVariable String code, @PathVariable String nickname){
+        if(groupService.isDuplicatedNickname(code, nickname)) return new BaseResponse<>(new GroupResDto.IsValidNickname(false));
+
+        return new BaseResponse<>(new GroupResDto.IsValidNickname(true));
+    }
+
+
 
 }

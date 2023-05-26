@@ -4,6 +4,7 @@ import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
+import com.prography1.eruna.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +59,36 @@ public class GroupService {
                 .groups(group).startDate(LocalDate.now()).finishDate(LocalDate.of(2999,12,31))
                 .alarmTime(alarmTime).alarmSound(alarmInfo.getSound())
                 .build();
+    }
+
+    public Boolean isValidCode(String code){
+        return groupRepository.existsByCode(code);
+    }
+
+    public Groups findByCode(String code){
+        return groupRepository.findByCode(code).orElseThrow(()-> new BaseException(BaseResponseStatus.INVALID_GROUP_CODE));
+    }
+
+    public boolean isDuplicatedNickname(String code, String nickname) {
+        Groups group = findByCode(code);
+        return groupUserRepository.existsByGroupsAndNickname(group, nickname);
+    }
+
+    public GroupUser joinGroupUser(String code, String uuid, String nickname, String phoneNum){
+        Groups group = findByCode(code);
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        GroupUser.GroupUserId groupUserId = GroupUser.GroupUserId.builder()
+                .groupId(group.getId())
+                .userId(user.getId())
+                .build();
+        GroupUser groupUser = GroupUser.builder()
+                .groupUserId(groupUserId)
+                .user(user)
+                .groups(group)
+                .nickname(nickname)
+                .phoneNum(phoneNum)
+                .build();
+        return groupUserRepository.save(groupUser);
     }
 
 }
