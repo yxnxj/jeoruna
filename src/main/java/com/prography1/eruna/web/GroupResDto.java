@@ -85,7 +85,7 @@ public class GroupResDto {
         @AllArgsConstructor
         @Getter
         private static class AlarmInfo{
-            @Schema(description = "알람 소리", example = "123-5678-asdf-asfg")
+            @Schema(description = "알람 소리", example = "sound_track_1")
             String sound;
             @Schema(description = "알람 시", example = "13")
             Integer hours;
