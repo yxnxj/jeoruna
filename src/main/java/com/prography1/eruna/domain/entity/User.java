@@ -24,7 +24,7 @@ public class User extends BaseTimeEntity{
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    public static User join(String uuid){
-        return User.builder().uuid(uuid).role(Role.USER).build();
+    public static User join(String uuid, String fcmToken){
+        return User.builder().uuid(uuid).fcmToken(fcmToken).role(Role.USER).build();
     }
 }

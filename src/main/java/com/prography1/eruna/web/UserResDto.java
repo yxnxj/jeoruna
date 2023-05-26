@@ -13,6 +13,6 @@ public class UserResDto {
     @AllArgsConstructor
     public static class UUID {
         @Schema(description = "UUID 토큰", example = "6e383010-7621-437b-98d5-fe2147465ac0")
-        private String uuidToken;
+        private String uuid;
     }
 }
