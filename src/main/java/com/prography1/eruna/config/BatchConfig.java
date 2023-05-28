@@ -7,6 +7,7 @@ import com.prography1.eruna.util.AlarmItemProcessor;
 import com.prography1.eruna.util.DayOfWeekRowMapper;
 import com.prography1.eruna.util.NoOpItemWriter;
 import lombok.RequiredArgsConstructor;
+import org.quartz.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -62,11 +63,11 @@ public class BatchConfig{
     }
 
     @Bean
-    public Step step(JobRepository jobRepository, PlatformTransactionManager transactionManager, AlarmRepository alarmRepository) {
+    public Step step(JobRepository jobRepository, PlatformTransactionManager transactionManager, AlarmRepository alarmRepository, Scheduler scheduler) {
         return new StepBuilder("step", jobRepository)
                 .<DayOfWeek, Alarm> chunk(10, transactionManager)
                 .reader(reader(alarmRepository))
-                .writer(new NoOpItemWriter())
+                .writer(new NoOpItemWriter(scheduler))
                 .processor(alarmItemProcessor(alarmRepository))
                 .allowStartIfComplete(true)
                 .build();
