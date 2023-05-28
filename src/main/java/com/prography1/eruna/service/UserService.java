@@ -3,6 +3,7 @@ package com.prography1.eruna.service;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
 import com.prography1.eruna.domain.entity.User;
 import com.prography1.eruna.domain.repository.UserRepository;
 import com.prography1.eruna.response.BaseException;
@@ -41,17 +42,29 @@ public class UserService {
      * TODO : 푸시 메시지 문구 협의 필요
      */
 
-    public void pushMessage(String fcmToken) {
+    public String pushMessage(String fcmToken) {
 
-        Message msg = Message.builder()
-                .setToken(fcmToken)
-                .putData("body", "일어나세요!")
+        /**
+         * Client에서 onNotification 이벤트로 알람을 받기 때문에 Message에 notification을 꼭 넣어주어야 알람이 발생한다.
+         */
+        Notification notification = Notification.builder()
+                .setTitle("push alarm")
+                .setBody("push wake up")
                 .build();
 
+        Message msg = Message.builder()
+                .setNotification(notification)
+                .setToken(fcmToken)
+//                .putData("body", "일어나세요!")
+                .build();
         try {
-            firebaseMessaging.send(msg);
+            String response = firebaseMessaging.send(msg);
+            log.info("response : " + response);
+            return response;
         } catch (FirebaseMessagingException e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage());
+            return e.getMessage();
+//            throw new BaseException(BaseResponseStatus.INVALID_FCM_TOKEN);
         }
     }
 
@@ -64,7 +77,7 @@ public class UserService {
     public Boolean isValidFCMToken(String fcmToken) {
         Message message = Message.builder().setToken(fcmToken).build();
         try {
-            FirebaseMessaging.getInstance().send(message);
+            firebaseMessaging.send(message);
             return true;
         } catch (FirebaseMessagingException fme) {
             log.error("Firebase token verification exception", fme);
