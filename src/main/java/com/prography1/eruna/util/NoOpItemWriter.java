@@ -1,4 +1,4 @@
-package com.prography1.eruna.service;
+package com.prography1.eruna.util;
 
 import com.prography1.eruna.domain.entity.Alarm;
 import org.springframework.batch.item.Chunk;
