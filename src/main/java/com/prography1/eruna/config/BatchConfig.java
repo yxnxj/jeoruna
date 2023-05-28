@@ -5,6 +5,7 @@ import com.prography1.eruna.domain.entity.DayOfWeek;
 import com.prography1.eruna.domain.repository.AlarmRepository;
 import com.prography1.eruna.util.AlarmItemProcessor;
 import com.prography1.eruna.util.DayOfWeekRowMapper;
+import com.prography1.eruna.util.JobCompletionNotificationListener;
 import com.prography1.eruna.util.NoOpItemWriter;
 import lombok.RequiredArgsConstructor;
 import org.quartz.Scheduler;
@@ -42,17 +43,18 @@ public class BatchConfig{
         reader.setDataSource(dataSource);
         reader.setSql("select alarm_id, day from day_of_week");
         reader.setRowMapper(new DayOfWeekRowMapper(alarmRepository));
-//        reader.setMaxRows(10);
-//        reader.setFetchSize(10);
+        reader.setMaxRows(10);
+        reader.setFetchSize(10);
         reader.setQueryTimeout(10000);
+        reader.close();
         return reader;
     }
 
     @Bean
-    public Job readAlarmsJob(JobRepository jobRepository, Step step) {
+    public Job readAlarmsJob(JobRepository jobRepository, JobCompletionNotificationListener listener,Step step) {
         return new JobBuilder("readAlarmsJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
-//                .listener(listener)
+                .listener(listener)
                 .flow(step)
                 .end()
                 .build();
