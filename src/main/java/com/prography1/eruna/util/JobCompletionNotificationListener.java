@@ -40,6 +40,9 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
                     Groups groups = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.DATABASE_ERROR));
 
                     LocalTime time = alarm.getAlarmTime();
+                    if(LocalTime.now().compareTo(time) > 0){
+                        continue;
+                    }
 
                     JobDataMap jobDataMap = new JobDataMap();
                     jobDataMap.put("group", groups);
