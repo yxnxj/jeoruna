@@ -3,6 +3,9 @@ package com.prography1.eruna.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
@@ -21,6 +24,12 @@ public class Groups extends BaseTimeEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="host_id")
     private User host;
+
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "groups", cascade = CascadeType.ALL)
+    private Alarm alarm;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy ="groups", cascade = CascadeType.ALL)
+    private List<GroupUser> groupUserList = new ArrayList<>();
 
     @Builder
     public Groups(String code, String penalty, User host) {
