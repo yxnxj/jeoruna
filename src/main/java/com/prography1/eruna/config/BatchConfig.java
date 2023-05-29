@@ -26,6 +26,7 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,7 +77,7 @@ public class BatchConfig{
     }
 
     @Bean
-    public Job readAlarmsJob(JobRepository jobRepository, JobCompletionNotificationListener listener,Step step) {
+    public Job readAlarmsJob(JobRepository jobRepository, JobCompletionNotificationListener listener,@Qualifier("readAlarmsStep") Step step) {
         return new JobBuilder("readAlarmsJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
@@ -94,7 +95,7 @@ public class BatchConfig{
     }
 
     @Bean
-    public Step step(JobRepository jobRepository, PlatformTransactionManager transactionManager, AlarmRepository alarmRepository, Scheduler scheduler) {
+    public Step readAlarmsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, AlarmRepository alarmRepository, Scheduler scheduler) {
         return new StepBuilder("step", jobRepository)
                 .<DayOfWeek, Alarm> chunk(10, transactionManager)
 //                .reader(reader(alarmRepository))
