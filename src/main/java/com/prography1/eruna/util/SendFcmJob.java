@@ -35,7 +35,7 @@ class SendFcmJob implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         JobDataMap jobDataMap = context.getMergedJobDataMap();
         Groups group = (Groups) jobDataMap.get("group");
-        List<GroupUser> groupUsers = groupUserRepository.findByGroups(group);
+        List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
 
         for (GroupUser groupUser : groupUsers) {
             User user = groupUser.getUser();
