@@ -7,7 +7,7 @@ import com.prography1.eruna.domain.repository.AlarmRepository;
 import com.prography1.eruna.util.AlarmItemProcessor;
 import com.prography1.eruna.util.DayOfWeekRowMapper;
 import com.prography1.eruna.util.JobCompletionNotificationListener;
-import com.prography1.eruna.util.NoOpItemWriter;
+import com.prography1.eruna.util.AlarmsItemWriter;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.quartz.Scheduler;
@@ -22,6 +22,7 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
@@ -83,6 +84,10 @@ public class BatchConfig{
                 .end()
                 .build();
     }
+
+    public ItemWriter<Alarm> writer(Scheduler scheduler){
+        return new AlarmsItemWriter(scheduler);
+    }
     @Bean
     AlarmItemProcessor alarmItemProcessor(AlarmRepository alarmRepository) {
         return new AlarmItemProcessor(alarmRepository);
@@ -94,7 +99,7 @@ public class BatchConfig{
                 .<DayOfWeek, Alarm> chunk(10, transactionManager)
 //                .reader(reader(alarmRepository))
                 .reader(jpaPagingItemReader())
-                .writer(new NoOpItemWriter(scheduler))
+                .writer(writer(scheduler))
                 .processor(alarmItemProcessor(alarmRepository))
                 .allowStartIfComplete(true)
                 .build();
