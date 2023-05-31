@@ -5,9 +5,11 @@ import com.prography1.eruna.domain.entity.GroupUser;
 import com.prography1.eruna.domain.entity.Groups;
 import com.prography1.eruna.domain.entity.User;
 import com.prography1.eruna.domain.repository.GroupUserRepository;
+import com.prography1.eruna.domain.repository.WakeUpCacheRepository;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.UserService;
+import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.units.qual.A;
 import org.quartz.*;
@@ -28,6 +30,7 @@ class SendFcmJob implements Job {
 //    private final Scheduler scheduler;
     private final UserService userService;
     private final GroupUserRepository groupUserRepository;
+    private final WakeUpCacheRepository wakeUpCacheRepository;
 
 
     @Override
@@ -39,11 +42,14 @@ class SendFcmJob implements Job {
 
         for (GroupUser groupUser : groupUsers) {
             User user = groupUser.getUser();
-            String fcmToken = user.getFcmToken();
+            String nickname = groupUser.getNickname();
 
+            UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(user, nickname);
+            wakeUpCacheRepository.addSleepUser(group.getId(), wakeupDto);
+
+            String fcmToken = user.getFcmToken();
             log.info("push message schedule is executed : " + fcmToken);
             userService.pushMessage(fcmToken);
         }
-
     }
 }

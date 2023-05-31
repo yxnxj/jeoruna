@@ -1,5 +1,7 @@
 package com.prography1.eruna.config;
 
+import com.prography1.eruna.domain.entity.User;
+import com.prography1.eruna.web.UserResDto;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,10 +21,10 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    public RedisTemplate<String, UserResDto.WakeupDto> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer = new GenericJackson2JsonRedisSerializer();
         // Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(ItemDto.class);
-        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        RedisTemplate<String, UserResDto.WakeupDto> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         // redisTemplate.setValueSerializer(new StringRedisSerializer());
