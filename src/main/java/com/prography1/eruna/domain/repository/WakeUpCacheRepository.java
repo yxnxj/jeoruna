@@ -61,4 +61,14 @@ public class WakeUpCacheRepository {
         }
         return false;
     }
+
+    public List<UserResDto.WakeupDto> findWakeupInfo(Long groupId){
+        String cachingKey = RedisGenKey.generateGroupKey(groupId);
+        Long size = getListSize(cachingKey);
+        List<UserResDto.WakeupDto> list = redisTemplate.opsForList().range(cachingKey, 0, size);
+
+        if (list == null) list =  new ArrayList<>();
+
+        return list;
+    }
 }
