@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -70,5 +71,17 @@ public class WakeUpCacheRepository {
         if (list == null) list =  new ArrayList<>();
 
         return list;
+    }
+
+    public void updateWakeupInfo(Long groupId, String uuid, String nickname) {
+        String key = RedisGenKey.generateGroupKey(groupId);
+        UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.builder()
+                .uuid(uuid)
+                .nickname(nickname)
+                .wakeup(true)
+                .wakeupTime(LocalTime.now().toString())
+                .build();
+
+        updateIfPresent(key, wakeupDto);
     }
 }

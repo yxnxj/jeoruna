@@ -36,21 +36,15 @@ public class SseEmitters {
         return emitter;
     }
 
-    public void wakeup(String groupId) {
+    public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId){
         SseEmitter emitter = emitters.get(groupId);
-        try {
-            emitter.send(SseEmitter.event()
-                    .name("wakeup")
-                    .data(groupId + "wakeup"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return sendWakeupInfo(groupId, emitter);
     }
     
     public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId, SseEmitter sseEmitter){
         List<UserResDto.WakeupDto> lists = wakeUpCacheRepository.findWakeupInfo(groupId);
         SseEmitter.SseEventBuilder event = SseEmitter.event()
-                .name("connect")
+                .name("wakeupInfo")
                 .data(lists);
 
         try {

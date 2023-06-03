@@ -91,4 +91,10 @@ public class GroupController {
         return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId, emitter));
 //        return ResponseEntity.ok(emitter);
     }
+
+    @PostMapping("/wake-up/{groupId}/{uuid}")
+    public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @PathVariable String uuid){
+        groupService.updateWakeupInfo(groupId, uuid);
+        return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId));
+    }
 }
