@@ -109,4 +109,20 @@ public class GroupService {
         GroupUser groupUser = groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         wakeUpCacheRepository.updateWakeupInfo(groupId, uuid, groupUser.getNickname());
     }
+    public void kickMember(Long groupId, String nickname, String hostUuid) {
+        User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+        Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        if(!isHost(group, host)){
+            throw new BaseException(NOT_HOST);
+        }
+        GroupUser kickedMember = groupUserRepository.findByNickname(nickname)
+                .orElseThrow(() -> new BaseException(NOT_FOUND_GROUP_USER));
+
+        groupUserRepository.delete(kickedMember);
+    }
+
+    private boolean isHost(Groups group, User user) {
+        return group.getHost() == user;
+    }
+
 }

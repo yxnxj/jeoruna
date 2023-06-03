@@ -58,4 +58,9 @@ public class Groups extends BaseTimeEntity{
 
         return sb.toString();
     }
+
+    public void updatePenalty(String penalty){
+        this.penalty = penalty;
+    }
 }
+

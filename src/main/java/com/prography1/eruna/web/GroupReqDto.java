@@ -63,4 +63,13 @@ public class GroupReqDto {
         @Schema(description = "유저 전화번호", example ="01012345678")
         private String phoneNum;
     }
+
+    @Schema(title = "그룹 멤버 강퇴")
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class KickMember {
+        @Schema(description = "Host 인증 용 UUID 토큰", example = "6e383010-7621-437b-98d5-fe2147465ac0")
+        private String uuid;
+    }
 }

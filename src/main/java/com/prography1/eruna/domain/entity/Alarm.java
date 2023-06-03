@@ -49,4 +49,9 @@ public class Alarm extends BaseTimeEntity{
         this.alarmTime = alarmTime;
         this.alarmRepeat = true;
     }
+
+    public void update(String alarmSound, LocalTime alarmTime){
+        this.alarmSound = alarmSound;
+        this.alarmTime = alarmTime;
+    }
 }
