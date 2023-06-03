@@ -29,6 +29,7 @@ public class GroupService {
     private final AlarmRepository alarmRepository;
     private final GroupUserRepository groupUserRepository;
     private final DayOfWeekRepository dayOfWeekRepository;
+    private final WakeUpCacheRepository wakeUpCacheRepository;
 
     public Long createGroup(CreateGroup createGroup) {
         AlarmInfo alarmInfo = createGroup.getAlarmInfo();
@@ -103,6 +104,11 @@ public class GroupService {
         return groupRepository.findById(groupId).orElseThrow(()-> new BaseException(NOT_FOUND_GROUP));
     }
 
+    public void updateWakeupInfo(Long groupId, String uuid){
+        User user = userRepository.findByUuid(uuid).orElseThrow( () -> new BaseException(USER_NOT_FOUND));
+        GroupUser groupUser = groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        wakeUpCacheRepository.updateWakeupInfo(groupId, uuid, groupUser.getNickname());
+    }
     public void kickMember(Long groupId, String nickname, String hostUuid) {
         User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
         Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));

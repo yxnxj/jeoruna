@@ -35,6 +35,8 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
         if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
             try {
                 List<Alarm> alarms = (List<Alarm>) scheduler.getContext().get("alarms");
+
+                if(alarms == null) alarms = new ArrayList<>();
                 for(int i = 0 ; i < alarms.size(); i++){
                     Alarm alarm = alarms.get(i);
                     Groups groups = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.DATABASE_ERROR));
@@ -51,8 +53,8 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
                             .newJob(SendFcmJob.class)
                             .usingJobData(jobDataMap)
                             .build();
-                    System.out.println("____________________");
-                    System.out.println(groups.getId());
+                    LOGGER.info("__________Schedule__________");
+                    LOGGER.info("group : " + groups.getId() + ", alarm : " + alarm.getAlarmTime());
                     scheduler.scheduleJob(job, runJobTrigger(time));
                 }
             } catch (SchedulerException e) {
