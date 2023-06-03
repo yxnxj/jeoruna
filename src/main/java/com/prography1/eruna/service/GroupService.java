@@ -118,4 +118,5 @@ public class GroupService {
     private boolean isHost(Groups group, User user) {
         return group.getHost() == user;
     }
+
 }
