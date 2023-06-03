@@ -75,6 +75,13 @@ public class GroupController {
         return new BaseResponse<>(GroupInfo.fromGroup(group));
     }
 
+    @Operation(summary = "알람 정보 수정", description = "알람 정보 수정")
+    @PatchMapping("/{groupId}/alarm")
+    public BaseResponse<String> editAlarm(@PathVariable Long groupId, @RequestBody AlarmEdit alarmEdit){
+        groupService.editAlarm(groupId, alarmEdit);
+        return new BaseResponse<>("ok");
+    }
+
 
     @Operation(summary = "그룹 멤버 강퇴", description = "그룹 멤버 강퇴")
     @PatchMapping("/{groupId}/kick/{nickname}")
