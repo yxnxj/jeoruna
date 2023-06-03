@@ -76,6 +76,13 @@ public class GroupController {
     }
 
 
+    @Operation(summary = "그룹 멤버 강퇴", description = "그룹 멤버 강퇴")
+    @PatchMapping("/{groupId}/kick/{nickname}")
+    public BaseResponse<String> kickMember(@PathVariable Long groupId, @PathVariable String nickname,
+                                           @RequestBody KickMember kickMember){
+        groupService.kickMember(groupId, nickname, kickMember.getUuid());
+        return new BaseResponse<>("ok");
+    }
 
 
 }
