@@ -44,9 +44,17 @@ public class SseEmitters {
     public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId, SseEmitter sseEmitter){
         List<UserResDto.WakeupDto> lists = wakeUpCacheRepository.findWakeupInfo(groupId);
         SseEmitter.SseEventBuilder event = SseEmitter.event()
-                .name("wakeupInfo")
+                .name("allWakeUp")
                 .data(lists);
 
+        for(UserResDto.WakeupDto wakeupDto : lists){
+            if (!wakeupDto.getWakeup()) {
+                event = SseEmitter.event()
+                        .name("wakeupInfo")
+                        .data(lists);
+            }
+        }
+        
         try {
             sseEmitter.send(event);
         } catch (IOException e) {
