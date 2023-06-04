@@ -52,6 +52,7 @@ public class SseEmitters {
                 event = SseEmitter.event()
                         .name("wakeupInfo")
                         .data(lists);
+                break;
             }
         }
         
