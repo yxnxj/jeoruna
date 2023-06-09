@@ -25,6 +25,8 @@ public enum BaseResponseStatus {
     NOT_HOST(false,2006,"host 권한이 필요합니다."),
     NOT_FOUND_GROUP(false,2007,"해당 그룹을 찾을 수 없습니다."),
     NOT_FOUND_GROUP_USER(false,2008,"해당 그룹멤버를 찾을 수 없습니다."),
+    NOT_FOUND_ALARM(false, 2009, "해당 알람 정보를 찾을 수 없습니다."),
+
 
 
     /**
