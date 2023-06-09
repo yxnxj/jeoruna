@@ -2,6 +2,7 @@ package com.prography1.eruna.util;
 
 import com.prography1.eruna.domain.entity.Wakeup;
 import com.prography1.eruna.domain.repository.WakeUpCacheRepository;
+import com.prography1.eruna.service.WakeupService;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SseEmitters {
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
     private final WakeUpCacheRepository wakeUpCacheRepository;
+    private final WakeupService wakeupService;
     public SseEmitter add(Long groupId ,SseEmitter emitter) {
 //        this.emitters.add(emitter);
         this.emitters.put(groupId, emitter);
@@ -42,26 +44,24 @@ public class SseEmitters {
     }
     
     public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId, SseEmitter sseEmitter){
-        List<UserResDto.WakeupDto> lists = wakeUpCacheRepository.findWakeupInfo(groupId);
+        List<UserResDto.WakeupDto> list = wakeUpCacheRepository.findWakeupInfo(groupId);
         SseEmitter.SseEventBuilder event = SseEmitter.event()
-                .name("allWakeUp")
-                .data(lists);
+                .name("wakeupInfo")
+                .data(list);
 
-        for(UserResDto.WakeupDto wakeupDto : lists){
-            if (!wakeupDto.getWakeup()) {
-                event = SseEmitter.event()
-                        .name("wakeupInfo")
-                        .data(lists);
-                break;
-            }
+        if(wakeUpCacheRepository.isAllWakeup(list)) {
+            wakeupService.saveAll(list, groupId);
+            event = SseEmitter.event()
+                    .name("allWakeUp")
+                    .data(list);
         }
-        
+
         try {
             sseEmitter.send(event);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        return lists;
+        return list;
     }
 }

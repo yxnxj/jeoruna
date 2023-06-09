@@ -1,11 +1,13 @@
 package com.prography1.eruna.domain.repository;
 
 import com.prography1.eruna.domain.entity.User;
+import com.prography1.eruna.domain.entity.Wakeup;
 import com.prography1.eruna.util.RedisGenKey;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -84,4 +86,16 @@ public class WakeUpCacheRepository {
 
         updateIfPresent(key, wakeupDto);
     }
+
+    public boolean isAllWakeup(List<UserResDto.WakeupDto> list){
+        for(UserResDto.WakeupDto wakeupDto : list){
+            if (!wakeupDto.getWakeup()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
 }
