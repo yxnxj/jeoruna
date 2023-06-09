@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.prography1.eruna.util.SendFcmJob.setFcmJobTrigger;
+
 @Component
 @RequiredArgsConstructor
 public class JobCompletionNotificationListener implements JobExecutionListener {
@@ -42,7 +44,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
                     Groups groups = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.DATABASE_ERROR));
 
                     LocalTime time = alarm.getAlarmTime();
-                    if(LocalTime.now().compareTo(time) > 0){
+                    if(LocalTime.now().isAfter(time)){
                         continue;
                     }
 
@@ -55,7 +57,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
                             .build();
                     LOGGER.info("__________Schedule__________");
                     LOGGER.info("group : " + groups.getId() + ", alarm : " + alarm.getAlarmTime());
-                    scheduler.scheduleJob(job, runJobTrigger(time));
+                    scheduler.scheduleJob(job, setFcmJobTrigger(time));
                 }
             } catch (SchedulerException e) {
                 throw new RuntimeException(e);
@@ -63,12 +65,5 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
         }
     }
 
-    public Trigger runJobTrigger(LocalTime localTime){
-        LocalDate localDate = LocalDate.now();
-        LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
-//        localDateTime.plusMinutes(1);
-        Date date = java.sql.Timestamp.valueOf(localDateTime);
-        return TriggerBuilder.newTrigger()
-                .startAt(date).build();
-    }
+
 }

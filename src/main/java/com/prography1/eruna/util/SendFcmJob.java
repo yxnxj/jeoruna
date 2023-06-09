@@ -20,12 +20,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Date;
 import java.util.List;
 
 
 @Component
 @RequiredArgsConstructor
-class SendFcmJob implements Job {
+public class SendFcmJob implements Job {
     private static final Logger log = LoggerFactory.getLogger(SendFcmJob.class);
 //    private final Scheduler scheduler;
     private final UserService userService;
@@ -51,5 +55,14 @@ class SendFcmJob implements Job {
             log.info("push message schedule is executed : " + fcmToken);
             userService.pushMessage(fcmToken);
         }
+    }
+
+    public static Trigger setFcmJobTrigger(LocalTime localTime){
+        LocalDate localDate = LocalDate.now();
+        LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
+//        localDateTime.plusMinutes(1);
+        Date date = java.sql.Timestamp.valueOf(localDateTime);
+        return TriggerBuilder.newTrigger()
+                .startAt(date).build();
     }
 }
