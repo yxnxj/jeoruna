@@ -66,12 +66,14 @@ public class BatchConfig{
         String today = localDate.getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
         HashMap<String, Object> paramValues = new HashMap<>();
         paramValues.put("today", Week.valueOf(today));
-
+        logger.info("Day: " + today);
         return new JpaPagingItemReaderBuilder<DayOfWeek>()
                 .name("alarmReader")
                 .entityManagerFactory(entityManagerFactory)
                 .pageSize(2)
-                .queryString("select d from DayOfWeek d where d.dayOfWeekId.day = :today")
+                .queryString("SELECT alarm FROM Alarm alarm WHERE " +
+                        "EXISTS (SELECT d FROM alarm.weekList d where d.dayOfWeekId.day = :today)")
+//                .queryString("select d from DayOfWeek d where d.dayOfWeekId.day = :today")
                 .parameterValues(paramValues)
                 .build();
     }
@@ -81,8 +83,7 @@ public class BatchConfig{
         return new JobBuilder("readAlarmsJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
-                .flow(step)
-                .end()
+                .start(step)
                 .build();
     }
 
@@ -101,7 +102,7 @@ public class BatchConfig{
 //                .reader(reader(alarmRepository))
                 .reader(jpaPagingItemReader())
                 .writer(writer(scheduler))
-                .processor(alarmItemProcessor(alarmRepository))
+//                .processor(alarmItemProcessor(alarmRepository))
                 .allowStartIfComplete(true)
                 .build();
     }
