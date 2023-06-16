@@ -25,7 +25,7 @@ public class Wakeup{
     @JoinColumn(name="user_id")
     private User user;
 
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     private LocalDate date;
 
     private Boolean wakeupCheck;
