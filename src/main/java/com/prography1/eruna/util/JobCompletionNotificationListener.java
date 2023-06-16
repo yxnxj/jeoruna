@@ -41,22 +41,22 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
                 if(alarms == null) alarms = new ArrayList<>();
                 for(int i = 0 ; i < alarms.size(); i++){
                     Alarm alarm = alarms.get(i);
-                    Groups groups = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.DATABASE_ERROR));
 
                     LocalTime time = alarm.getAlarmTime();
                     if(LocalTime.now().isAfter(time)){
                         continue;
                     }
+                    Groups group = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.DATABASE_ERROR));
 
                     JobDataMap jobDataMap = new JobDataMap();
-                    jobDataMap.put("group", groups);
+                    jobDataMap.put("group", group);
 
                     JobDetail job = JobBuilder
                             .newJob(SendFcmJob.class)
                             .usingJobData(jobDataMap)
                             .build();
                     LOGGER.info("__________Schedule__________");
-                    LOGGER.info("group : " + groups.getId() + ", alarm : " + alarm.getAlarmTime());
+                    LOGGER.info("group : " + group.getId() + ", alarm : " + alarm.getAlarmTime());
                     scheduler.scheduleJob(job, setFcmJobTrigger(time));
                 }
             } catch (SchedulerException e) {
