@@ -65,14 +65,18 @@ public class BatchConfig{
         LocalDate localDate = LocalDate.now();
         String today = localDate.getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
         HashMap<String, Object> paramValues = new HashMap<>();
+        String query =
+                "SELECT alarm FROM Alarm alarm WHERE " +
+                "EXISTS (SELECT d FROM alarm.weekList d where d.dayOfWeekId.day = :today)";
         paramValues.put("today", Week.valueOf(today));
         logger.info("Day: " + today);
+
+
         return new JpaPagingItemReaderBuilder<DayOfWeek>()
                 .name("alarmReader")
                 .entityManagerFactory(entityManagerFactory)
                 .pageSize(2)
-                .queryString("SELECT alarm FROM Alarm alarm WHERE " +
-                        "EXISTS (SELECT d FROM alarm.weekList d where d.dayOfWeekId.day = :today)")
+                .queryString(query)
 //                .queryString("select d from DayOfWeek d where d.dayOfWeekId.day = :today")
                 .parameterValues(paramValues)
                 .build();
