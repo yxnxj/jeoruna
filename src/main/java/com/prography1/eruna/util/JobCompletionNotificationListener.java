@@ -79,7 +79,6 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
             wakeUpCacheRepository.addSleepUser(group.getId(), wakeupDto);
 
             String fcmToken = user.getFcmToken();
-            LOGGER.info("push message schedule is executed : " + fcmToken);
             JobDataMap jobDataMap = new JobDataMap();
             jobDataMap.put("fcmToken", user.getFcmToken());
 

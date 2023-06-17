@@ -42,6 +42,7 @@ public class SendFcmJob implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         JobDataMap jobDataMap = context.getMergedJobDataMap();
         String fcmToken =  jobDataMap.getString("fcmToken");
+        log.info("push message schedule is executed : " + fcmToken);
 
         userService.pushMessage(fcmToken);
     }
