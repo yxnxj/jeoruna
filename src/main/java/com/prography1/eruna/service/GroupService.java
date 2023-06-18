@@ -6,7 +6,13 @@ import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
+import com.prography1.eruna.util.JobCompletionNotificationListener;
 import lombok.RequiredArgsConstructor;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,13 +29,14 @@ import static com.prography1.eruna.response.BaseResponseStatus.*;
 @Transactional
 @Service
 public class GroupService {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(GroupService.class);
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final AlarmRepository alarmRepository;
     private final GroupUserRepository groupUserRepository;
     private final DayOfWeekRepository dayOfWeekRepository;
     private final WakeUpCacheRepository wakeUpCacheRepository;
+    private final Scheduler scheduler;
 
     public Long createGroup(CreateGroup createGroup) {
         AlarmInfo alarmInfo = createGroup.getAlarmInfo();
@@ -105,6 +112,11 @@ public class GroupService {
     }
 
     public void updateWakeupInfo(Long groupId, String uuid){
+        try {
+            deleteFcmJob(uuid);
+        } catch (SchedulerException e) {
+            throw new RuntimeException(e);
+        }
         User user = userRepository.findByUuid(uuid).orElseThrow( () -> new BaseException(USER_NOT_FOUND));
         GroupUser groupUser = groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         wakeUpCacheRepository.updateWakeupInfo(groupId, uuid, groupUser.getNickname());
@@ -125,4 +137,9 @@ public class GroupService {
         return group.getHost() == user;
     }
 
+    private void deleteFcmJob(String uuid) throws SchedulerException {
+        JobKey jobKey = JobKey.jobKey(uuid);
+        scheduler.deleteJob(jobKey);
+        LOGGER.info("fcm job delete : " + uuid);
+    }
 }
