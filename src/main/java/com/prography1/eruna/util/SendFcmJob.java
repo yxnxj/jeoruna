@@ -32,7 +32,6 @@ import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 
 @Component
 @RequiredArgsConstructor
-@Transactional
 public class SendFcmJob implements Job {
     private static final Logger log = LoggerFactory.getLogger(SendFcmJob.class);
 //    private final Scheduler scheduler;
