@@ -39,7 +39,7 @@ public class UserResDto {
         private String nickname;
         @Schema(title = "기상 상태" , defaultValue = "false", description = "기상 API가 요청됐을 때 true로 갱신된다.", example = "true")
         private Boolean wakeup;
-        @Schema(title = "기상 시간", description = "기상 API로 요청 받으면 요청 시간으로 갱신된다.", example = "15:19:47.459")
+        @Schema(title = "기상 시간", description = "기상 API로 요청 받으면 요청 시간으로 갱신된다.", example = "15:19:47.459", defaultValue = "0:00:00")
         private String wakeupTime;
 
 //        @Builder
