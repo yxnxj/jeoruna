@@ -46,6 +46,7 @@ public class GroupController {
         return new BaseResponse<>(new PenaltyList(penaltyList));
     }
 
+    @Operation(summary = "새 유저 그룹 합류", description = "그룹 링크를 공유받은 유저가 그룹에 참여한다.")
     @PostMapping("/{code}")
     public BaseResponse<String> userJoinGroup(@PathVariable String code, @RequestBody GroupJoinUserInfo groupJoinUserInfo){
         if(!groupService.isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
@@ -65,6 +66,7 @@ public class GroupController {
         return new BaseResponse<>(e.getStatus());
     }
 
+    @Operation(summary = "닉네임 중복 확인", description = "참여하려는 그룹에 중복된 닉네임이 있는지 확인한다.")
     @GetMapping("/{code}/nickname-valid/{nickname}")
     public BaseResponse<GroupResDto.IsValidNickname> isValidNickname(@PathVariable String code, @PathVariable String nickname){
         if(groupService.isDuplicatedNickname(code, nickname)) return new BaseResponse<>(new GroupResDto.IsValidNickname(false));
@@ -79,12 +81,12 @@ public class GroupController {
         return new BaseResponse<>(GroupInfo.fromGroup(group));
     }
 
-    @Operation(summary = "알람 정보 수정", description = "알람 정보 수정")
-    @PatchMapping("/{groupId}/alarm")
-    public BaseResponse<String> editAlarm(@PathVariable Long groupId, @RequestBody AlarmEdit alarmEdit){
-        groupService.editAlarm(groupId, alarmEdit);
-        return new BaseResponse<>("ok");
-    }
+//    @Operation(summary = "알람 정보 수정", description = "알람 정보 수정")
+//    @PatchMapping("/{groupId}/alarm")
+//    public BaseResponse<String> editAlarm(@PathVariable Long groupId, @RequestBody AlarmEdit alarmEdit){
+//        groupService.editAlarm(groupId, alarmEdit);
+//        return new BaseResponse<>("ok");
+//    }
 
 
     @Operation(summary = "그룹 멤버 강퇴", description = "그룹 멤버 강퇴")
@@ -96,6 +98,7 @@ public class GroupController {
     }
 
 
+    @Operation(summary = "그룹 기상 정보 페이지 접속", description = "유저들의 기상 정보 확인 API \n SSE 연결 수행 및 캐싱된 기상 정보를 반환한다.")
     @GetMapping("/wake-up/{groupId}")
     public BaseResponse<List<UserResDto.WakeupDto>> sendWakeupInfo(@PathVariable Long groupId){
         SseEmitter emitter = new SseEmitter(60*1000L);
@@ -106,6 +109,7 @@ public class GroupController {
 //        return ResponseEntity.ok(emitter);
     }
 
+    @Operation(summary = "유저 기상", description = "캐싱된 기상정보 데이터들을 업데이트 한다.")
     @PostMapping("/wake-up/{groupId}/{uuid}")
     public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @PathVariable String uuid){
         groupService.updateWakeupInfo(groupId, uuid);
