@@ -132,5 +132,30 @@ public class GroupService {
         return group.getHost() == user;
     }
 
+    public void editAlarm(Long groupId, AlarmEdit alarmEdit) {
+        User host = userRepository.findByUuid(alarmEdit.getUuid()).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+        Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        if(!isHost(group, host)){
+            throw new BaseException(NOT_HOST);
+        }
+        LocalTime newTime = LocalTime.of(alarmEdit.getAlarmInfo().getHours(), alarmEdit.getAlarmInfo().getMinutes());
+        group.getAlarm().update(alarmEdit.getAlarmInfo().getSound(), newTime);
 
+        //기존 요일 삭제
+        List<DayOfWeek> oldDayOfWeekList = dayOfWeekRepository.findAllByAlarm(group.getAlarm());
+        for (DayOfWeek oldDay : oldDayOfWeekList) {
+            dayOfWeekRepository.delete(oldDay);
+        }
+
+        // 요일리스트 생성 및 저장
+        List<DayOfWeek> newDayOfWeekList = new ArrayList<>();
+        for (Week week : alarmEdit.getAlarmInfo().getWeek()) {
+            DayOfWeek.DayOfWeekId dayOfWeekId = new DayOfWeek.DayOfWeekId(group.getAlarm().getId(), week);
+            DayOfWeek dayOfWeek = new DayOfWeek(dayOfWeekId, group.getAlarm());
+            newDayOfWeekList.add(dayOfWeek);
+        }
+        for (DayOfWeek dayOfWeek : newDayOfWeekList) {
+            dayOfWeekRepository.save(dayOfWeek);
+        }
+    }
 }

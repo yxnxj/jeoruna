@@ -26,6 +26,9 @@ public class GroupReqDto {
         @Schema(description = "전화번호", example = "01012345678")
         private String phoneNum;
 
+        @Schema(description = "벌칙", example = "커피 쏘기!")
+        private String penalty;
+
         @Schema(description = "알람 설정", example = "알람 설정 스키마 참고")
         private AlarmInfo alarmInfo;
     }
@@ -38,6 +41,9 @@ public class GroupReqDto {
         @Schema(description = "알람 sound 명", example = "sound_track_1")
         private String sound;
 
+        @Schema(description = "벌칙", example = "커피 쏘기!")
+        private String penalty;
+
         @Schema(description = "알람 시", example = "13")
         private Integer hours;
 
@@ -47,8 +53,6 @@ public class GroupReqDto {
         @Schema(description = "반복 요일", example = "[\"MON\", \"SUN\", \"WED\"]")
         private List<Week> week;
 
-        @Schema(description = "벌칙", example = "커피 쏘기!")
-        private String penalty;
     }
 
     @Schema(title = "유저 그룹 참가")
@@ -71,5 +75,17 @@ public class GroupReqDto {
     public static class KickMember {
         @Schema(description = "Host 인증 용 UUID 토큰", example = "6e383010-7621-437b-98d5-fe2147465ac0")
         private String uuid;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AlarmEdit{
+
+        @Schema(description = "Host 인증 용 UUID 토큰", example = "6e383010-7621-437b-98d5-fe2147465ac0")
+        private String uuid;
+
+        @Schema(description = "알람 설정", example = "알람 설정 스키마 참고")
+        private AlarmInfo alarmInfo;
     }
 }

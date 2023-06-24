@@ -1,5 +1,6 @@
 package com.prography1.eruna.domain.entity;
 
+import com.prography1.eruna.web.GroupReqDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
