@@ -12,6 +12,10 @@ import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -21,11 +25,14 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class WakeupService {
     private final UserRepository userRepository;
     private final AlarmRepository alarmRepository;
     private final GroupRepository groupRepository;
     private final WakeupRepository wakeupRepository;
+    private final Scheduler scheduler;
+
 
     private Wakeup save(UserResDto.WakeupDto wakeupDto, Long groupId){
         User user = userRepository.findByUuid(wakeupDto.getUuid()).orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_UUID_TOKEN));
@@ -48,8 +55,19 @@ public class WakeupService {
 
         for(UserResDto.WakeupDto wakeupDto : list){
             wakeupList.add(save(wakeupDto, groupId));
+            try {
+                deleteFcmJob(wakeupDto.getUuid());
+            } catch (SchedulerException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         return wakeupList;
+    }
+
+    private void deleteFcmJob(String uuid) throws SchedulerException {
+        JobKey jobKey = JobKey.jobKey(uuid);
+        scheduler.deleteJob(jobKey);
+        log.info("fcm job delete : " + uuid);
     }
 }
