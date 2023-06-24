@@ -6,6 +6,7 @@ import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
+import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class GroupService {
     private final GroupUserRepository groupUserRepository;
     private final DayOfWeekRepository dayOfWeekRepository;
     private final WakeUpCacheRepository wakeUpCacheRepository;
+    private final AlarmService alarmService;
 
     public Long createGroup(CreateGroup createGroup) {
         AlarmInfo alarmInfo = createGroup.getAlarmInfo();
@@ -49,6 +51,11 @@ public class GroupService {
         }
         groupRepository.save(group);
         alarmRepository.save(alarm);
+        try {
+            alarmService.addAlarmScheduleOnCreate(alarm, groupUser);
+        } catch (SchedulerException e) {
+            throw new RuntimeException(e);
+        }
         groupUserRepository.save(groupUser);
         for(DayOfWeek dayOfWeek : dayOfWeekList){
             dayOfWeekRepository.save(dayOfWeek);
@@ -144,6 +151,12 @@ public class GroupService {
         }
         for (DayOfWeek dayOfWeek : newDayOfWeekList) {
             dayOfWeekRepository.save(dayOfWeek);
+        }
+
+        try {
+            alarmService.editAlarmScheduleNow(group.getAlarm(), group);
+        } catch (SchedulerException e) {
+            throw new RuntimeException(e);
         }
     }
 }
