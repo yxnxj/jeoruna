@@ -31,7 +31,7 @@ public class GroupService {
     private final DayOfWeekRepository dayOfWeekRepository;
     private final WakeUpCacheRepository wakeUpCacheRepository;
 
-    public Long createGroup(CreateGroup createGroup) {
+    public Groups createGroup(CreateGroup createGroup) {
         AlarmInfo alarmInfo = createGroup.getAlarmInfo();
         User host = userRepository.findByUuid(createGroup.getUuid())
                 .orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
@@ -53,7 +53,7 @@ public class GroupService {
         for(DayOfWeek dayOfWeek : dayOfWeekList){
             dayOfWeekRepository.save(dayOfWeek);
         }
-        return group.getId();
+        return group;
     }
 
     private Alarm alarmInfoToAlarm(AlarmInfo alarmInfo, Groups group){

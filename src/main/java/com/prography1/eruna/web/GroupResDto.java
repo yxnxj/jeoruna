@@ -14,12 +14,16 @@ public class GroupResDto {
 
     private GroupResDto(){}
 
-    @Schema(title = "Group 생성 시 GroupId 반환")
+    @Schema(title = "Group 생성 시 GroupId, code 반환")
     @Getter
     @AllArgsConstructor
     public static class CreatedGroup {
         @Schema(description = "GroupId", example = "1")
         private Long groupId;
+
+        @Schema(description = "GroupCode", example = "LN8IX2")
+        private String code;
+
     }
 
     @Schema(title = "닉네임 중복 체크")
