@@ -2,6 +2,7 @@ package com.prography1.eruna.domain.repository;
 
 import com.prography1.eruna.domain.entity.GroupUser;
 import com.prography1.eruna.domain.entity.Groups;
+import com.prography1.eruna.domain.entity.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,6 +19,8 @@ public interface GroupUserRepository extends JpaRepository<GroupUser, GroupUser.
 
     Optional<GroupUser> findByNickname(String nickname);
 
-    @Query("select g from GroupUser g where g.groups = :group")
+    @Query("select g from GroupUser g JOIN FETCH g.user where g.groups = :group")
     List<GroupUser> findByGroupsForScheduler(Groups group);
+
+    Optional<GroupUser> findGroupUserByUser(User user);
 }

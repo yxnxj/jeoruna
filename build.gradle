@@ -19,6 +19,7 @@ repositories {
 }
 
 dependencies {
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-batch'
 	implementation 'org.springframework.boot:spring-boot-starter-quartz'
 	// https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-aws

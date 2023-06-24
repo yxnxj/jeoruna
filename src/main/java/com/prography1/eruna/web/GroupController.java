@@ -6,12 +6,16 @@ import com.prography1.eruna.response.BaseResponse;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.GroupService;
 import com.prography1.eruna.service.UserService;
+import com.prography1.eruna.util.SseEmitters;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.prography1.eruna.web.GroupReqDto.*;
@@ -27,7 +31,7 @@ public class GroupController {
 
     private final GroupService groupService;
     private final UserService userService;
-
+    private final SseEmitters sseEmitters;
     @Operation(summary = "그룹 만들기", description = "알람 그룹 만들기")
     @PostMapping("")
     public BaseResponse<CreatedGroup> createGroup(@RequestBody CreateGroup createGroup){
@@ -92,4 +96,19 @@ public class GroupController {
     }
 
 
+    @GetMapping("/wake-up/{groupId}")
+    public BaseResponse<List<UserResDto.WakeupDto>> sendWakeupInfo(@PathVariable Long groupId){
+        SseEmitter emitter = new SseEmitter(60*1000L);
+        sseEmitters.add(groupId, emitter);
+
+
+        return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId, emitter));
+//        return ResponseEntity.ok(emitter);
+    }
+
+    @PostMapping("/wake-up/{groupId}/{uuid}")
+    public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @PathVariable String uuid){
+        groupService.updateWakeupInfo(groupId, uuid);
+        return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId));
+    }
 }
