@@ -1,16 +1,11 @@
 package com.prography1.eruna.service;
 
 import com.prography1.eruna.domain.entity.*;
-import com.prography1.eruna.domain.enums.Penalty;
 import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
-import com.prography1.eruna.util.JobCompletionNotificationListener;
 import lombok.RequiredArgsConstructor;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.prography1.eruna.web.GroupReqDto.*;
@@ -41,7 +35,7 @@ public class GroupService {
         AlarmInfo alarmInfo = createGroup.getAlarmInfo();
         User host = userRepository.findByUuid(createGroup.getUuid())
                 .orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
-        Groups group = Groups.create(host, alarmInfo.getPenalty());
+        Groups group = Groups.create(host);
         Alarm alarm= alarmInfoToAlarm(alarmInfo, group);
         GroupUser groupUser = GroupUser.builder().user(host).groups(group).nickname(createGroup.getNickname())
                 .phoneNum(createGroup.getPhoneNum())
@@ -98,12 +92,6 @@ public class GroupService {
                 .phoneNum(phoneNum)
                 .build();
         return groupUserRepository.save(groupUser);
-    }
-
-    public List<String> findPenaltyList() {
-        List<String> penaltyList = new ArrayList<>();
-        Arrays.stream(Penalty.values()).forEach(item -> penaltyList.add(item.getDetail()));
-        return penaltyList;
     }
 
     public Groups findGroupById(Long groupId) {

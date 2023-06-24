@@ -1,7 +1,6 @@
 package com.prography1.eruna.web;
 
 import com.prography1.eruna.domain.entity.Alarm;
-import com.prography1.eruna.domain.entity.DayOfWeek;
 import com.prography1.eruna.domain.entity.GroupUser;
 import com.prography1.eruna.domain.entity.Groups;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -32,24 +31,12 @@ public class GroupResDto {
 
     }
 
-    @Schema(title = "패널티 목록")
-    @Getter
-    @AllArgsConstructor
-    public static class PenaltyList {
-        @Schema(description = "패널티 목록", example = "penalty-list : [ \"커피쏘기\", \"소원 들어주기\" ]")
-        private List<String> penaltyList;
-
-    }
-
     @Schema(title = "그룹 정보")
     @Getter
     @AllArgsConstructor
     public static class GroupInfo {
         @Schema(description = "그룹 코드", example = "s1a0d1")
         private String code;
-
-        @Schema(description = "기상 실패 시 벌칙", example = "커피쏘기")
-        private String penalty;
 
         @Schema(description = "멤버 정보 리스트")
         private List<Member> members;
@@ -105,7 +92,7 @@ public class GroupResDto {
         public static GroupInfo fromGroup(Groups group) {
             List<Member> memberList = new ArrayList<>();
             group.getGroupUserList().forEach(groupUser -> memberList.add(Member.fromGroupUser(group, groupUser)));
-            return new GroupInfo(group.getCode(), group.getPenalty(),memberList, AlarmInfo.fromAlarm(group.getAlarm()));
+            return new GroupInfo(group.getCode(), memberList, AlarmInfo.fromAlarm(group.getAlarm()));
         }
     }
 }
