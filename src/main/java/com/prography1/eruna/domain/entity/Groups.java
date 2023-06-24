@@ -19,8 +19,6 @@ public class Groups extends BaseTimeEntity{
     @Column(unique = true)
     private String code;
 
-    private String penalty;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="host_id")
     private User host;
@@ -32,15 +30,14 @@ public class Groups extends BaseTimeEntity{
     private List<GroupUser> groupUserList = new ArrayList<>();
 
     @Builder
-    public Groups(String code, String penalty, User host) {
+    public Groups(String code, User host) {
         this.code = code;
-        this.penalty = penalty;
         this.host = host;
     }
 
-    public static Groups create(User host, String penalty){
+    public static Groups create(User host){
         String newCode = generateCode();
-        return Groups.builder().code(newCode).penalty(penalty).host(host).build();
+        return Groups.builder().code(newCode).host(host).build();
     }
 
     private static String generateCode(){
@@ -57,10 +54,6 @@ public class Groups extends BaseTimeEntity{
         }
 
         return sb.toString();
-    }
-
-    public void updatePenalty(String penalty){
-        this.penalty = penalty;
     }
 }
 

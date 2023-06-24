@@ -11,11 +11,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.util.List;
 
 import static com.prography1.eruna.web.GroupReqDto.*;
@@ -37,13 +35,6 @@ public class GroupController {
     public BaseResponse<CreatedGroup> createGroup(@RequestBody CreateGroup createGroup){
         CreatedGroup createdGroup = new CreatedGroup(groupService.createGroup(createGroup));
         return new BaseResponse<>(createdGroup);
-    }
-
-    @Operation(summary = "패널티 목록 조회", description = "패널티 목록 조회")
-    @GetMapping("/penalty-list")
-    public BaseResponse<PenaltyList> findPenaltyList(){
-        List<String> penaltyList = groupService.findPenaltyList();
-        return new BaseResponse<>(new PenaltyList(penaltyList));
     }
 
     @PostMapping("/{code}")

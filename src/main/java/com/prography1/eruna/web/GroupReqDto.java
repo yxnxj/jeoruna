@@ -26,9 +26,6 @@ public class GroupReqDto {
         @Schema(description = "전화번호", example = "01012345678")
         private String phoneNum;
 
-        @Schema(description = "벌칙", example = "커피 쏘기!")
-        private String penalty;
-
         @Schema(description = "알람 설정", example = "알람 설정 스키마 참고")
         private AlarmInfo alarmInfo;
     }
@@ -40,9 +37,6 @@ public class GroupReqDto {
 
         @Schema(description = "알람 sound 명", example = "sound_track_1")
         private String sound;
-
-        @Schema(description = "벌칙", example = "커피 쏘기!")
-        private String penalty;
 
         @Schema(description = "알람 시", example = "13")
         private Integer hours;
