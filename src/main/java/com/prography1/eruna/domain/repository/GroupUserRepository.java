@@ -19,7 +19,7 @@ public interface GroupUserRepository extends JpaRepository<GroupUser, GroupUser.
 
     Optional<GroupUser> findByNickname(String nickname);
 
-    @Query("select g from GroupUser g where g.groups = :group")
+    @Query("select g from GroupUser g JOIN FETCH g.user where g.groups = :group")
     List<GroupUser> findByGroupsForScheduler(Groups group);
 
     Optional<GroupUser> findGroupUserByUser(User user);
