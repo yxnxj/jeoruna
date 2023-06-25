@@ -33,8 +33,8 @@ public class AlarmService {
     private final GroupUserRepository groupUserRepository;
     private final WakeUpCacheRepository wakeUpCacheRepository;
 
-    public void editAlarmScheduleNow(Alarm alarm, Groups group) throws SchedulerException {
-        if(!isTodayAlarm(alarm.getWeekList())) return;
+    public void editAlarmScheduleNow(Alarm alarm, Groups group, List<DayOfWeek> dayOfWeeks) throws SchedulerException {
+        if(!isTodayAlarm(dayOfWeeks)) return;
 
         List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
 

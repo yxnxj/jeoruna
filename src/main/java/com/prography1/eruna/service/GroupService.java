@@ -154,7 +154,7 @@ public class GroupService {
         }
 
         try {
-            alarmService.editAlarmScheduleNow(group.getAlarm(), group);
+            alarmService.editAlarmScheduleNow(group.getAlarm(), group, newDayOfWeekList);
         } catch (SchedulerException e) {
             throw new RuntimeException(e);
         }
