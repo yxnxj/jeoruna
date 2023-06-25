@@ -34,7 +34,7 @@ public class AlarmService {
     private final WakeUpCacheRepository wakeUpCacheRepository;
 
     public void editAlarmScheduleNow(Alarm alarm, Groups group) throws SchedulerException {
-        if(!isTodayAlarm(alarm)) return;
+        if(!isTodayAlarm(alarm.getWeekList())) return;
 
         List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
 
@@ -50,8 +50,8 @@ public class AlarmService {
             createJob(alarm, user);
         }
     }
-    public void addAlarmScheduleOnCreate(Alarm alarm, GroupUser groupUser) throws SchedulerException {
-        if (!isTodayAlarm(alarm)) return;
+    public void addAlarmScheduleOnCreate(Alarm alarm, GroupUser groupUser, List<DayOfWeek> days) throws SchedulerException {
+        if (!isTodayAlarm(days)) return;
 
         User host = groupUser.getUser();
         UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(host, groupUser.getNickname());
@@ -75,13 +75,12 @@ public class AlarmService {
         scheduler.scheduleJob(job, setFcmJobTrigger(alarm.getAlarmTime()));
     }
 
-    private boolean isTodayAlarm(Alarm alarm){
+    private boolean isTodayAlarm(List<DayOfWeek> days){
         LocalDate localDate = LocalDate.now();
         String day = localDate.getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
 
-        List<DayOfWeek> days = alarm.getWeekList();
         for (DayOfWeek storedDay : days){
-            if(day.equals(storedDay.toString())) {
+            if(day.equals(storedDay.getDayOfWeekId().getDay().toString())) {
                 LOGGER.info("Day: " + day);
                 return true;
             }

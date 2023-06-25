@@ -52,7 +52,7 @@ public class GroupService {
         groupRepository.save(group);
         alarmRepository.save(alarm);
         try {
-            alarmService.addAlarmScheduleOnCreate(alarm, groupUser);
+            alarmService.addAlarmScheduleOnCreate(alarm, groupUser, dayOfWeekList);
         } catch (SchedulerException e) {
             throw new RuntimeException(e);
         }
