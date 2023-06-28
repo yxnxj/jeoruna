@@ -53,7 +53,8 @@ public class SendFcmJob implements Job {
         Date date = java.sql.Timestamp.valueOf(localDateTime);
         return TriggerBuilder.newTrigger()
                 .startAt(date)
-                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(2000))
+                //FCM 무한 전송의 limit 시간은 20분이다. 2초 간격으로 600번의 요청을 보낸다.
+                .withSchedule(simpleSchedule().withRepeatCount(600).withIntervalInMilliseconds(2000))
                 .build();
     }
 }
