@@ -1,11 +1,13 @@
 package com.prography1.eruna.web;
 
+import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponse;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import static com.prography1.eruna.web.UserReqDto.FcmToken;
@@ -16,6 +18,7 @@ import static com.prography1.eruna.web.UserResDto.UUID;
 @RestController
 @RequiredArgsConstructor
 @Tag(name="User",description = "유저 API")
+@Slf4j
 @RequestMapping("/user")
 public class UserController {
 
@@ -41,5 +44,12 @@ public class UserController {
 
         String response = userService.pushMessage(token);
         return new BaseResponse<>(response);
+    }
+
+
+    @ExceptionHandler(BaseException.class)
+    public BaseResponse<String> handleBaseException(BaseException e) {
+        log.info(e.getClass().toString());
+        return new BaseResponse<>(e.getStatus());
     }
 }
