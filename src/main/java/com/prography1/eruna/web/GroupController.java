@@ -16,17 +16,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springdoc.core.annotations.RouterOperation;
-import org.springframework.http.ResponseEntity;
-
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
 import static com.prography1.eruna.web.GroupReqDto.*;
-import static com.prography1.eruna.web.GroupResDto.*;
+import static com.prography1.eruna.web.GroupResDto.CreatedGroup;
+import static com.prography1.eruna.web.GroupResDto.GroupInfo;
 
 
 @RestController
@@ -44,14 +41,6 @@ public class GroupController {
     public BaseResponse<CreatedGroup> createGroup(@RequestBody CreateGroup createGroup){
         CreatedGroup createdGroup = new CreatedGroup(groupService.createGroup(createGroup));
         return new BaseResponse<>(createdGroup);
-    }
-
-
-    @Operation(summary = "패널티 목록 조회", description = "패널티 목록 조회")
-    @GetMapping("/penalty-list")
-    public BaseResponse<PenaltyList> findPenaltyList(){
-        List<String> penaltyList = groupService.findPenaltyList();
-        return new BaseResponse<>(new PenaltyList(penaltyList));
     }
 
     @Operation(summary = "새 유저 그룹 합류", description = "그룹 링크를 공유받은 유저가 그룹에 참여한다.",

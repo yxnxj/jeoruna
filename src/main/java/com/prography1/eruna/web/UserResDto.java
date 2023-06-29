@@ -1,7 +1,5 @@
 package com.prography1.eruna.web;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gson.annotations.SerializedName;
 import com.prography1.eruna.domain.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -10,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public class UserResDto {
@@ -57,5 +54,13 @@ public class UserResDto {
                     .wakeupTime(LocalTime.MIDNIGHT.toString())
                     .build();
         }
+    }
+
+    @Schema(title = "유저가 속한 그룹의 id")
+    @Getter
+    @AllArgsConstructor
+    public static class GroupId {
+        @Schema(description = "유저가 속한 그룹의 id", example = "12")
+        private Long groupId;
     }
 }

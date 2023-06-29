@@ -5,12 +5,13 @@ import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import static com.prography1.eruna.web.UserResDto.*;
-import static com.prography1.eruna.web.UserReqDto.*;
+import static com.prography1.eruna.web.UserReqDto.FcmToken;
+import static com.prography1.eruna.web.UserReqDto.RequiredUUID;
+import static com.prography1.eruna.web.UserResDto.GroupId;
+import static com.prography1.eruna.web.UserResDto.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,6 +25,12 @@ public class UserController {
     @PostMapping("/uuid")
     public BaseResponse<UUID> joinByUUID(@RequestBody FcmToken fcmToken){
         return new BaseResponse<>(new UUID(userService.joinByUUID(fcmToken.getFcmToken())));
+    }
+
+    @Operation(summary = "UUID로 유저 그룹Id 받아오기", description = "UUID로 유저 그룹Id 받아오기 그룹 없으면 null")
+    @GetMapping("/group")
+    public BaseResponse<GroupId> getUserGroupId(@RequestBody RequiredUUID uuid){
+        return new BaseResponse<>(new GroupId(userService.findGroupIdByUUID(uuid.getUuid())));
     }
 
     @PostMapping("/push")

@@ -4,17 +4,20 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
+import com.prography1.eruna.domain.entity.GroupUser;
 import com.prography1.eruna.domain.entity.User;
+import com.prography1.eruna.domain.repository.GroupUserRepository;
 import com.prography1.eruna.domain.repository.UserRepository;
 import com.prography1.eruna.response.BaseException;
-import com.prography1.eruna.response.BaseResponseStatus;
-import com.prography1.eruna.web.UserReqDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
+
+import static com.prography1.eruna.response.BaseResponseStatus.USER_NOT_FOUND;
 
 @RequiredArgsConstructor
 @Transactional
@@ -23,6 +26,7 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final GroupUserRepository groupUserRepository;
 
     private final FirebaseMessaging firebaseMessaging;
 
@@ -32,8 +36,6 @@ public class UserService {
         userRepository.save(user);
         return uuidToken;
     }
-
-
 
     /**
      * ChoYeonJun add
@@ -89,6 +91,15 @@ public class UserService {
     }
 
     public User findByUUID(String uuid){
-        return userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        return userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(USER_NOT_FOUND));
+    }
+
+    public Long findGroupIdByUUID(String uuid) {
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(USER_NOT_FOUND));
+        Optional<GroupUser> groupUser = groupUserRepository.findByUser(user);
+        if(groupUser.isEmpty())
+            return null;
+        else
+            return groupUser.get().getGroups().getId();
     }
 }
