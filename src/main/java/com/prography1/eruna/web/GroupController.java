@@ -61,8 +61,11 @@ public class GroupController {
         if(!groupService.isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
         String uuid = groupJoinUserInfo.getUuid();
         if(!userService.isUserExist(uuid)) throw new BaseException(BaseResponseStatus.INVALID_UUID_TOKEN);
+        if(groupService.isUserExistInGroup(uuid, code))
+            throw new BaseException(BaseResponseStatus.ALREADY_IN_GROUP_USER);
         String nickname = groupJoinUserInfo.getNickname();
         if(groupService.isDuplicatedNickname(code, nickname)) throw new BaseException(BaseResponseStatus.DUPLICATED_NICKNAME);
+
 
         groupService.joinGroupUser(code, uuid, nickname, groupJoinUserInfo.getPhoneNum());
         return new BaseResponse<>("ok");
