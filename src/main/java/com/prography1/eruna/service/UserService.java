@@ -1,9 +1,6 @@
 package com.prography1.eruna.service;
 
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
+import com.google.firebase.messaging.*;
 import com.prography1.eruna.domain.entity.GroupUser;
 import com.prography1.eruna.domain.entity.User;
 import com.prography1.eruna.domain.repository.GroupUserRepository;
@@ -14,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -57,7 +56,14 @@ public class UserService {
         Message msg = Message.builder()
                 .setNotification(notification)
                 .setToken(fcmToken)
-//                .putData("body", "일어나세요!")
+                .setApnsConfig(
+                        ApnsConfig.builder()
+                                .setAps(Aps.builder()
+                                        .setSound("siuuuuuu.wav")
+                                        .build())
+                                .build()
+                )
+//                .putData("sound", "siu, default")
                 .build();
         try {
             String response = firebaseMessaging.send(msg);
