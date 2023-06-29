@@ -17,4 +17,13 @@ public class UserReqDto {
         @Schema(description = "Fcm 토큰", example = "6e383010-7621-437b-98d5-fe2147465ac0")
         private String fcmToken;
     }
+
+    @Schema(title = "UUID 전달")
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RequiredUUID {
+        @Schema(description = "유저 식별용 UUID", example = "6e383010-7621-437b-98d5-fe2147465ac0")
+        private String uuid;
+    }
 }

@@ -2,6 +2,7 @@ package com.prography1.eruna.domain.repository;
 
 import com.prography1.eruna.domain.entity.Alarm;
 import com.prography1.eruna.domain.entity.Groups;
+import com.prography1.eruna.domain.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
