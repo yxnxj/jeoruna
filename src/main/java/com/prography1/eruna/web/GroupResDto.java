@@ -22,6 +22,14 @@ public class GroupResDto {
         private Long groupId;
     }
 
+    @Schema(title = "재발급된 Group Code")
+    @Getter
+    @AllArgsConstructor
+    public static class NewGroupCode {
+        @Schema(description = "그룹코드", example = "s1a0d1")
+        private String groupCode;
+    }
+
     @Schema(title = "닉네임 중복 체크")
     @Getter
     @AllArgsConstructor
