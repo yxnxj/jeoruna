@@ -23,4 +23,7 @@ public interface GroupUserRepository extends JpaRepository<GroupUser, GroupUser.
     Optional<GroupUser> findGroupUserByUser(User user);
 
     Optional<GroupUser> findByUser(User user);
+
+    boolean existsByGroupsAndUser(Groups group, User user);
+
 }

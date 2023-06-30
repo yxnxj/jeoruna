@@ -159,4 +159,11 @@ public class GroupService {
             throw new RuntimeException(e);
         }
     }
+
+    public boolean isUserExistInGroup(String uuid, String code){
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(USER_NOT_FOUND));
+        Groups group = groupRepository.findByCode(code).orElseThrow(() -> new BaseException(INVALID_GROUP_CODE));
+        return groupUserRepository.existsByGroupsAndUser(group, user);
+//        return userRepository.existsByUuid(uuid);
+    }
 }
