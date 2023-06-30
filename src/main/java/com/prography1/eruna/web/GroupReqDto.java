@@ -35,7 +35,7 @@ public class GroupReqDto {
     @AllArgsConstructor
     public static class AlarmInfo{
 
-        @Schema(description = "알람 sound 명", example = "sound_track_1")
+        @Schema(description = "알람 sound 명", example = "ALARM_SIU")
         private String sound;
 
         @Schema(description = "알람 시", example = "13")

@@ -73,7 +73,7 @@ public class UserService {
             log.info("response : " + response);
             return response;
         } catch (FirebaseMessagingException e) {
-            log.error(e.getMessage()  + "token: " + fcmToken);
+            log.error(e.getMessage()  + ", token: " + fcmToken);
             return e.getMessage();
 //            throw new BaseException(BaseResponseStatus.INVALID_FCM_TOKEN);
         }

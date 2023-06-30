@@ -1,5 +1,6 @@
 package com.prography1.eruna.domain.entity;
 
+import com.prography1.eruna.domain.enums.AlarmSound;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,7 +29,8 @@ public class Alarm extends BaseTimeEntity{
     @Temporal(TemporalType.DATE)
     private LocalDate finishDate;
 
-    private String alarmSound;
+    @Enumerated(EnumType.STRING)
+    private AlarmSound alarmSound;
 
     @Temporal(TemporalType.TIME)
     private LocalTime alarmTime;
@@ -40,7 +42,7 @@ public class Alarm extends BaseTimeEntity{
 
 
     @Builder
-    public Alarm(Groups groups, LocalDate startDate, LocalDate finishDate, String alarmSound,
+    public Alarm(Groups groups, LocalDate startDate, LocalDate finishDate, AlarmSound alarmSound,
                  LocalTime alarmTime) {
         this.groups = groups;
         this.startDate = startDate;
@@ -50,7 +52,7 @@ public class Alarm extends BaseTimeEntity{
         this.alarmRepeat = true;
     }
 
-    public void update(String alarmSound, LocalTime alarmTime){
+    public void update(AlarmSound alarmSound, LocalTime alarmTime){
         this.alarmSound = alarmSound;
         this.alarmTime = alarmTime;
     }

@@ -1,6 +1,7 @@
 package com.prography1.eruna.service;
 
 import com.prography1.eruna.domain.entity.*;
+import com.prography1.eruna.domain.enums.AlarmSound;
 import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
@@ -67,7 +68,7 @@ public class GroupService {
         LocalTime alarmTime = LocalTime.of(alarmInfo.getHours(), alarmInfo.getMinutes());
         return Alarm.builder()
                 .groups(group).startDate(LocalDate.now()).finishDate(LocalDate.of(2999,12,31))
-                .alarmTime(alarmTime).alarmSound(alarmInfo.getSound())
+                .alarmTime(alarmTime).alarmSound(AlarmSound.valueOf(alarmInfo.getSound()))
                 .build();
     }
 
@@ -134,7 +135,7 @@ public class GroupService {
             throw new BaseException(NOT_HOST);
         }
         LocalTime newTime = LocalTime.of(alarmEdit.getAlarmInfo().getHours(), alarmEdit.getAlarmInfo().getMinutes());
-        group.getAlarm().update(alarmEdit.getAlarmInfo().getSound(), newTime);
+        group.getAlarm().update(AlarmSound.valueOf(alarmEdit.getAlarmInfo().getSound()), newTime);
 
         //기존 요일 삭제
         List<DayOfWeek> oldDayOfWeekList = dayOfWeekRepository.findAllByAlarm(group.getAlarm());
