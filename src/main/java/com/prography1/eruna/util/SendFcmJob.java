@@ -4,6 +4,7 @@ import com.prography1.eruna.domain.entity.Alarm;
 import com.prography1.eruna.domain.entity.GroupUser;
 import com.prography1.eruna.domain.entity.Groups;
 import com.prography1.eruna.domain.entity.User;
+import com.prography1.eruna.domain.enums.AlarmSound;
 import com.prography1.eruna.domain.repository.GroupUserRepository;
 import com.prography1.eruna.domain.repository.WakeUpCacheRepository;
 import com.prography1.eruna.response.BaseException;
@@ -41,9 +42,10 @@ public class SendFcmJob implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         JobDataMap jobDataMap = context.getMergedJobDataMap();
         String fcmToken =  jobDataMap.getString("fcmToken");
+        AlarmSound alarmSound = AlarmSound.valueOf(jobDataMap.getString("alarmSound"));
         log.info("push message schedule is executed : " + fcmToken);
 
-        userService.pushMessage(fcmToken);
+        userService.pushMessage(fcmToken, alarmSound.getFilename());
     }
 
     public static Trigger setFcmJobTrigger(LocalTime localTime){

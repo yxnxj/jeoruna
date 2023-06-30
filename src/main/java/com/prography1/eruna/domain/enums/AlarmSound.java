@@ -4,7 +4,12 @@ import lombok.Getter;
 
 @Getter
 public enum AlarmSound {
-    SOUND1,
-    SOUND2,
-    SOUND3
+
+    ALARM_SIU("siuuuuuu.wav"),
+    ALARM_DEFAULT("default.wav")
+    ;
+    private final String filename;
+    AlarmSound(String filename) {
+        this.filename = filename;
+    }
 }

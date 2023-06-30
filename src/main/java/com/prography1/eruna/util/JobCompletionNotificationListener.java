@@ -81,7 +81,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
             String fcmToken = user.getFcmToken();
             JobDataMap jobDataMap = new JobDataMap();
             jobDataMap.put("fcmToken", user.getFcmToken());
-
+            jobDataMap.put("alarmSound", alarm.getAlarmSound());
             JobDetail job = JobBuilder
                     .newJob(SendFcmJob.class)
                     .withIdentity(user.getUuid())
