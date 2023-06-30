@@ -75,11 +75,12 @@ public class WakeUpCacheRepository {
         return list;
     }
 
-    public void updateWakeupInfo(Long groupId, String uuid, String nickname) {
+    public void updateWakeupInfo(Long groupId, String uuid, String nickname, String phoneNum) {
         String key = RedisGenKey.generateGroupKey(groupId);
         UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.builder()
                 .uuid(uuid)
                 .nickname(nickname)
+                .phoneNum(phoneNum)
                 .wakeup(true)
                 .wakeupTime(LocalTime.now().toString())
                 .build();

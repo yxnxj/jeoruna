@@ -41,7 +41,8 @@ public class AlarmService {
         for (GroupUser groupUser : groupUsers) {
             User user = groupUser.getUser();
             String nickname = groupUser.getNickname();
-            UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(user, nickname);
+            String phoneNum = groupUser.getPhoneNum();
+            UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(user, nickname, phoneNum);
             wakeUpCacheRepository.addSleepUser(group.getId(), wakeupDto);
 
             JobKey jobKey = JobKey.jobKey(user.getUuid());
@@ -54,7 +55,7 @@ public class AlarmService {
         if (!isTodayAlarm(days)) return;
 
         User host = groupUser.getUser();
-        UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(host, groupUser.getNickname());
+        UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(host, groupUser.getNickname(), groupUser.getPhoneNum());
         wakeUpCacheRepository.addSleepUser(groupUser.getGroups().getId(), wakeupDto);
 
         createJob(alarm, host);
