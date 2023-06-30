@@ -71,6 +71,15 @@ public class GroupReqDto {
         private String uuid;
     }
 
+    @Schema(title = "UUID")
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UUID {
+        @Schema(description = "Host 인증 용 UUID 토큰", example = "6e383010-7621-437b-98d5-fe2147465ac0")
+        private String uuid;
+    }
+
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor

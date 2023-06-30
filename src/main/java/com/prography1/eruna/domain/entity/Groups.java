@@ -55,5 +55,9 @@ public class Groups extends BaseTimeEntity{
 
         return sb.toString();
     }
+
+    public void changeCode(){
+        code = generateCode();
+    }
 }
 

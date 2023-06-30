@@ -166,4 +166,15 @@ public class GroupService {
         return groupUserRepository.existsByGroupsAndUser(group, user);
 //        return userRepository.existsByUuid(uuid);
     }
+
+    public String reissueGroupCode(Long groupId, String hostUuid) {
+        User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+        Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        if(!isHost(group, host)){
+            throw new BaseException(NOT_HOST);
+        }
+        group.changeCode();
+        groupRepository.save(group);
+        return group.getCode();
+    }
 }

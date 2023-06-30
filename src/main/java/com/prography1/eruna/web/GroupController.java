@@ -22,8 +22,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.List;
 
 import static com.prography1.eruna.web.GroupReqDto.*;
-import static com.prography1.eruna.web.GroupResDto.CreatedGroup;
-import static com.prography1.eruna.web.GroupResDto.GroupInfo;
+import static com.prography1.eruna.web.GroupResDto.*;
 
 
 @RestController
@@ -110,6 +109,13 @@ public class GroupController {
     public BaseResponse<String> editAlarm(@PathVariable Long groupId, @RequestBody AlarmEdit alarmEdit){
         groupService.editAlarm(groupId, alarmEdit);
         return new BaseResponse<>("ok");
+    }
+
+    @Operation(summary = "그룹 코드 재생성", description = "그룹 코드 재생성")
+    @PatchMapping("/{groupId}/refresh-code")
+    public BaseResponse<NewGroupCode> refreshGroupCode(@PathVariable Long groupId, @RequestBody UUID uuid){
+        String newCode = groupService.reissueGroupCode(groupId, uuid.getUuid());
+        return new BaseResponse<>(new NewGroupCode(newCode));
     }
 
 
