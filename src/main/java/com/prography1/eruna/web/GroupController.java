@@ -17,7 +17,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
@@ -125,6 +124,15 @@ public class GroupController {
                                            @RequestBody KickMember kickMember){
         groupService.kickMember(groupId, nickname, kickMember.getUuid());
         return new BaseResponse<>("ok");
+    }
+
+    @Operation(summary = "그룹 멤버 수, 방장 닉네임 반환", description = "그룹 코드를 받으면 해당 그룹의 멤버 수, 방장 닉네임 반환")
+    @GetMapping("/{code}/preview")
+    public BaseResponse<GroupPreview> groupPreview(@PathVariable String code){
+        Integer groupMemberCount = groupService.groupMemberCountByCode(code);
+        String hostNickname = groupService.getHostNicknameByGroupCode(code);
+        GroupPreview groupPreview = new GroupPreview(groupMemberCount, hostNickname);
+        return new BaseResponse<>(groupPreview);
     }
 
   @Operation(summary = "그룹 기상 정보 페이지 접속", description = "유저들의 기상 정보 확인 API \n SSE 연결 수행 및 캐싱된 기상 정보를 반환한다.",
