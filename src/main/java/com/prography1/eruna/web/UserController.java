@@ -49,7 +49,7 @@ public class UserController {
 
     @ExceptionHandler(BaseException.class)
     public BaseResponse<String> handleBaseException(BaseException e) {
-        log.info(e.getClass().toString());
+        log.info(e.getStatus().toString());
         return new BaseResponse<>(e.getStatus());
     }
 }

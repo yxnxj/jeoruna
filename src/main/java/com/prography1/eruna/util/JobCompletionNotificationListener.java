@@ -74,8 +74,8 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
         for (GroupUser groupUser : groupUsers) {
             User user = groupUser.getUser();
             String nickname = groupUser.getNickname();
-
-            UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(user, nickname);
+            String phoneNum = groupUser.getPhoneNum();
+            UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(user, nickname, phoneNum);
             wakeUpCacheRepository.addSleepUser(group.getId(), wakeupDto);
 
             String fcmToken = user.getFcmToken();
@@ -88,7 +88,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
                     .usingJobData(jobDataMap)
                     .build();
             LOGGER.info("__________Schedule__________");
-            LOGGER.info("group : " + group.getId() + ", alarm : " + alarm.getAlarmTime());
+            LOGGER.info("group : " + group.getId() + ", user : " + user.getId() + ", alarm : " + alarm.getAlarmTime());
             scheduler.scheduleJob(job, setFcmJobTrigger(alarm.getAlarmTime()));
         }
 

@@ -39,11 +39,6 @@ public class SseEmitters {
     }
 
     public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId){
-        SseEmitter emitter = emitters.get(groupId);
-        return sendWakeupInfo(groupId, emitter);
-    }
-    
-    public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId, SseEmitter sseEmitter){
         List<UserResDto.WakeupDto> list = wakeUpCacheRepository.findWakeupInfo(groupId);
         SseEmitter.SseEventBuilder event = SseEmitter.event()
                 .name("wakeupInfo")
@@ -56,12 +51,44 @@ public class SseEmitters {
                     .data(list);
         }
 
-        try {
-            sseEmitter.send(event);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
         return list;
     }
+
+//regionSSE emitter send
+
+    /**
+     * demo 데이에서 제외하고 구현하도록 임시 주석처리
+     * @param groupId
+     * @return
+     */
+//    public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId){
+//        SseEmitter emitter = emitters.get(groupId);
+//        return sendWakeupInfo(groupId, emitter);
+//    }
+    
+//    public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId, SseEmitter sseEmitter){
+//        List<UserResDto.WakeupDto> list = wakeUpCacheRepository.findWakeupInfo(groupId);
+//        SseEmitter.SseEventBuilder event = SseEmitter.event()
+//                .name("wakeupInfo")
+//                .data(list);
+//
+//        if(wakeUpCacheRepository.isAllWakeup(list)) {
+//            wakeupService.saveAll(list, groupId);
+//            event = SseEmitter.event()
+//                    .name("allWakeUp")
+//                    .data(list);
+//        }
+//
+//        try {
+//            sseEmitter.send(event);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//        return list;
+//    }
+//endregion
+
+
+
 }

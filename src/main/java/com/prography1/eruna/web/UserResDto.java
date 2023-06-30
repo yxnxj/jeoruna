@@ -38,6 +38,8 @@ public class UserResDto {
         private Boolean wakeup;
         @Schema(title = "기상 시간", description = "기상 API로 요청 받으면 요청 시간으로 갱신된다.", example = "15:19:47.459", defaultValue = "0:00:00")
         private String wakeupTime;
+        @Schema(title = "전화 번호", description = "유저의 전화번호", example = "01012345678")
+        private String phoneNum;
 
 //        @Builder
 //        public WakeupDto(String uuid, String nickname){
@@ -46,10 +48,11 @@ public class UserResDto {
 //        }
 
 
-        public static WakeupDto fromUser(User user, String nickname){
+        public static WakeupDto fromUser(User user, String nickname, String phoneNum){
             return WakeupDto.builder()
                     .uuid(user.getUuid())
                     .nickname(nickname)
+                    .phoneNum(phoneNum)
                     .wakeup(false)
                     .wakeupTime(LocalTime.MIDNIGHT.toString())
                     .build();

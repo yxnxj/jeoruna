@@ -109,7 +109,7 @@ public class GroupService {
 
         User user = userRepository.findByUuid(uuid).orElseThrow( () -> new BaseException(USER_NOT_FOUND));
         GroupUser groupUser = groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
-        wakeUpCacheRepository.updateWakeupInfo(groupId, uuid, groupUser.getNickname());
+        wakeUpCacheRepository.updateWakeupInfo(groupId, uuid, groupUser.getNickname(), groupUser.getPhoneNum());
     }
     public void kickMember(Long groupId, String nickname, String hostUuid) {
         User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
