@@ -177,4 +177,16 @@ public class GroupService {
         groupRepository.save(group);
         return group.getCode();
     }
+
+    public Integer groupMemberCountByCode(String code) {
+        Groups group = groupRepository.findByCode(code).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        return groupUserRepository.countByGroups(group).intValue();
+    }
+
+    public String getHostNicknameByGroupCode(String code) {
+        Groups group = groupRepository.findByCode(code).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        User host = group.getHost();
+        GroupUser groupUser = groupUserRepository.findByUser(host).orElseThrow(()-> new BaseException(NOT_FOUND_GROUP_USER));
+        return groupUser.getNickname();
+    }
 }

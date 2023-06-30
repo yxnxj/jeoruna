@@ -26,4 +26,5 @@ public interface GroupUserRepository extends JpaRepository<GroupUser, GroupUser.
 
     boolean existsByGroupsAndUser(Groups group, User user);
 
+    Long countByGroups(Groups groups);
 }

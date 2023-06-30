@@ -30,6 +30,16 @@ public class GroupResDto {
         private String groupCode;
     }
 
+    @Schema(title = "그룹 멤버 수, 방장 닉네임 반환")
+    @Getter
+    @AllArgsConstructor
+    public static class GroupPreview {
+        @Schema(description = "그룹 멤버 수 ", example = "3")
+        private Integer memberCount;
+        @Schema(description = "방장 닉네임 ", example = "김무땡")
+        private String hostNickname;
+    }
+
     @Schema(title = "닉네임 중복 체크")
     @Getter
     @AllArgsConstructor
