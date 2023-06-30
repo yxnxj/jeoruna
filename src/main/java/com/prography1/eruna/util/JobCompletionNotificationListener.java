@@ -88,7 +88,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
                     .usingJobData(jobDataMap)
                     .build();
             LOGGER.info("__________Schedule__________");
-            LOGGER.info("group : " + group.getId() + ", alarm : " + alarm.getAlarmTime());
+            LOGGER.info("group : " + group.getId() + ", user : " + user.getId() + ", alarm : " + alarm.getAlarmTime());
             scheduler.scheduleJob(job, setFcmJobTrigger(alarm.getAlarmTime()));
         }
 

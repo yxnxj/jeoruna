@@ -141,11 +141,8 @@ public class GroupController {
             })))
     @GetMapping("/wake-up/{groupId}")
     public BaseResponse<List<UserResDto.WakeupDto>> sendWakeupInfo(@PathVariable Long groupId){
-        SseEmitter emitter = new SseEmitter(60*1000L);
-        sseEmitters.add(groupId, emitter);
 
-
-        return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId, emitter));
+        return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId));
 //        return ResponseEntity.ok(emitter);
     }
 
@@ -174,6 +171,8 @@ public class GroupController {
     })))
     @PostMapping("/wake-up/{groupId}/{uuid}")
     public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @PathVariable String uuid){
+//        SseEmitter emitter = new SseEmitter(60*1000L);
+//        sseEmitters.add(groupId, emitter);
         groupService.updateWakeupInfo(groupId, uuid);
         return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId));
     }
