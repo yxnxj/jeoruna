@@ -92,7 +92,7 @@ public class GroupResDto {
             private static AlarmInfo fromAlarm(Alarm alarm){
                 List<String> weekList = new ArrayList<>();
                 alarm.getWeekList().forEach(week-> weekList.add(week.getDayOfWeekId().getDay().name()));
-                return new AlarmInfo(alarm.getAlarmSound(), alarm.getAlarmTime().getHour(),
+                return new AlarmInfo(alarm.getAlarmSound().toString(), alarm.getAlarmTime().getHour(),
                         alarm.getAlarmTime().getMinute(), weekList);
             }
         }
