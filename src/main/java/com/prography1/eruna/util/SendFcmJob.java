@@ -1,5 +1,6 @@
 package com.prography1.eruna.util;
 
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.prography1.eruna.domain.entity.Alarm;
 import com.prography1.eruna.domain.entity.GroupUser;
 import com.prography1.eruna.domain.entity.Groups;
@@ -35,16 +36,27 @@ import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 @RequiredArgsConstructor
 public class SendFcmJob implements Job {
     private static final Logger log = LoggerFactory.getLogger(SendFcmJob.class);
-//    private final Scheduler scheduler;
+    private final Scheduler scheduler;
     private final UserService userService;
 
     @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
+    public void execute(JobExecutionContext context) {
         JobDataMap jobDataMap = context.getMergedJobDataMap();
         String fcmToken =  jobDataMap.getString("fcmToken");
         AlarmSound alarmSound = AlarmSound.valueOf(jobDataMap.getString("alarmSound"));
         log.info("push message schedule is executed : " + fcmToken);
 
+        if(!userService.isValidFCMToken(fcmToken)) {
+            String uuid = jobDataMap.getString("uuid");
+            JobKey jobKey = JobKey.jobKey(uuid);
+            try {
+                scheduler.deleteJob(jobKey);
+                log.warn("fcmToken : " + fcmToken + "is not valid" );
+                log.warn("jobKey : " + jobKey.getName() + "schedule is deleted");
+            } catch (SchedulerException e) {
+                throw new RuntimeException(e);
+            }
+        }
         userService.pushMessage(fcmToken, alarmSound.getFilename());
     }
 
