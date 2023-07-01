@@ -190,4 +190,19 @@ public class GroupService {
         GroupUser groupUser = groupUserRepository.findByUser(host).orElseThrow(()-> new BaseException(NOT_FOUND_GROUP_USER));
         return groupUser.getNickname();
     }
+
+    public void exitGroup(Long groupId, String uuid) {
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+        Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        GroupUser groupUser =
+                groupUserRepository.findGroupUserByUser(user).orElseThrow(()-> new BaseException(NOT_FOUND_GROUP_USER));
+        if(isHost(group, user)){
+            throw new BaseException(HOST_CANNOT_EXIT);
+        }
+        if(groupUser.getGroups()==group) {
+            groupUserRepository.delete(groupUser);
+        }else{
+            throw new BaseException(NOT_FOUND_GROUP_USER);
+        }
+    }
 }
