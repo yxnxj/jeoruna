@@ -9,6 +9,7 @@ import com.prography1.eruna.domain.repository.GroupUserRepository;
 import com.prography1.eruna.domain.repository.WakeUpCacheRepository;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
+import com.prography1.eruna.service.AlarmService;
 import com.prography1.eruna.service.UserService;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +31,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static com.prography1.eruna.util.SendFcmJob.setFcmJobTrigger;
-
 @Component
 @RequiredArgsConstructor
 
@@ -43,6 +42,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     private final UserService userService;
     private final GroupUserRepository groupUserRepository;
     private final WakeUpCacheRepository wakeUpCacheRepository;
+    private final AlarmService alarmService;
     @Override
 //    @Transactional
     public void afterJob(JobExecution jobExecution) {
@@ -78,20 +78,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
             UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(user, nickname, phoneNum);
             wakeUpCacheRepository.addSleepUser(group.getId(), wakeupDto);
 
-            String fcmToken = user.getFcmToken();
-            JobDataMap jobDataMap = new JobDataMap();
-            jobDataMap.put("fcmToken", user.getFcmToken());
-            jobDataMap.put("alarmSound", alarm.getAlarmSound().toString());
-            jobDataMap.put("uuid", user.getUuid());
-
-            JobDetail job = JobBuilder
-                    .newJob(SendFcmJob.class)
-                    .withIdentity(user.getUuid())
-                    .usingJobData(jobDataMap)
-                    .build();
-            LOGGER.info("__________Schedule__________");
-            LOGGER.info("group : " + group.getId() + ", user : " + user.getId() + ", alarm : " + alarm.getAlarmTime());
-            scheduler.scheduleJob(job, setFcmJobTrigger(alarm.getAlarmTime()));
+            alarmService.createJob(alarm, user);
         }
 
 

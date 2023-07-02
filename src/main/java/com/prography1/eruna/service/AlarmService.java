@@ -7,7 +7,7 @@ import com.prography1.eruna.domain.repository.GroupUserRepository;
 import com.prography1.eruna.domain.repository.WakeUpCacheRepository;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
-import com.prography1.eruna.util.JobCompletionNotificationListener;
+import com.prography1.eruna.util.SendAlarmDoneJob;
 import com.prography1.eruna.util.SendFcmJob;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static com.prography1.eruna.util.SendAlarmDoneJob.setAfterAlarmTrigger;
 import static com.prography1.eruna.util.SendFcmJob.setFcmJobTrigger;
 
 @Service
@@ -62,10 +63,13 @@ public class AlarmService {
 
     }
 
-    private void createJob(Alarm alarm, User user) throws SchedulerException {
+    public void createJob(Alarm alarm, User user) throws SchedulerException {
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("fcmToken", user.getFcmToken());
+        jobDataMap.put("alarmSound", alarm.getAlarmSound().toString());
+        jobDataMap.put("uuid", user.getUuid());
 
+        int repeatCount = 600;
         JobDetail job = JobBuilder
                 .newJob(SendFcmJob.class)
                 .withIdentity(user.getUuid())
@@ -73,7 +77,14 @@ public class AlarmService {
                 .build();
         LOGGER.info("__________Schedule__________");
         LOGGER.info("group : " + alarm.getGroups().getId() + ", alarm : " + alarm.getAlarmTime());
-        scheduler.scheduleJob(job, setFcmJobTrigger(alarm.getAlarmTime()));
+        scheduler.scheduleJob(job, setFcmJobTrigger(alarm.getAlarmTime(), repeatCount));
+
+        JobDetail sendAlarmDoneJob = JobBuilder
+                .newJob(SendAlarmDoneJob.class)
+                .withIdentity(user.getUuid(), SendAlarmDoneJob.class.getName())
+                .build();
+        int afterSecond = (repeatCount+1) * 2;
+        scheduler.scheduleJob(sendAlarmDoneJob, setAfterAlarmTrigger(afterSecond, alarm.getAlarmTime()));
     }
 
     private boolean isTodayAlarm(List<DayOfWeek> days){

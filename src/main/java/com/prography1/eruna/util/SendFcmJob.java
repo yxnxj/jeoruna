@@ -60,7 +60,7 @@ public class SendFcmJob implements Job {
         userService.pushMessage(fcmToken, alarmSound.getFilename());
     }
 
-    public static Trigger setFcmJobTrigger(LocalTime localTime){
+    public static Trigger setFcmJobTrigger(LocalTime localTime, int repeatCount){
         LocalDate localDate = LocalDate.now();
         LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
 //        localDateTime.plusMinutes(1);
@@ -68,7 +68,9 @@ public class SendFcmJob implements Job {
         return TriggerBuilder.newTrigger()
                 .startAt(date)
                 //FCM 무한 전송의 limit 시간은 20분이다. 2초 간격으로 600번의 요청을 보낸다.
-                .withSchedule(simpleSchedule().withRepeatCount(600).withIntervalInMilliseconds(2000))
+                .withSchedule(simpleSchedule().withRepeatCount(repeatCount).withIntervalInMilliseconds(2000))
                 .build();
     }
+
+
 }
