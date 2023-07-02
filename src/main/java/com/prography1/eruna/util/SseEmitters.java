@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -68,13 +69,14 @@ public class SseEmitters {
                 .name("wakeupInfo")
                 .data(list);
 
+
         if(wakeUpCacheRepository.isAllWakeup(list)) {
             wakeupService.saveAll(list, groupId);
             event = SseEmitter.event()
                     .name("allWakeUp")
                     .data(list);
         }
-
+        list.sort(Comparator.comparing(UserResDto.WakeupDto::getWakeupTime));
         return list;
     }
 

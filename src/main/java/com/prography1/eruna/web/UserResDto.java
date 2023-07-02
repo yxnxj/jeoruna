@@ -54,7 +54,7 @@ public class UserResDto {
                     .nickname(nickname)
                     .phoneNum(phoneNum)
                     .wakeup(false)
-                    .wakeupTime(LocalTime.MIDNIGHT.toString())
+                    .wakeupTime(LocalTime.of(23,59).toString())
                     .build();
         }
     }
