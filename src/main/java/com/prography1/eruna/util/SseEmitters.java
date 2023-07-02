@@ -1,7 +1,13 @@
 package com.prography1.eruna.util;
 
+import com.prography1.eruna.domain.entity.GroupUser;
+import com.prography1.eruna.domain.entity.Groups;
 import com.prography1.eruna.domain.entity.Wakeup;
+import com.prography1.eruna.domain.repository.GroupRepository;
+import com.prography1.eruna.domain.repository.GroupUserRepository;
 import com.prography1.eruna.domain.repository.WakeUpCacheRepository;
+import com.prography1.eruna.response.BaseException;
+import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.WakeupService;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +27,8 @@ public class SseEmitters {
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
     private final WakeUpCacheRepository wakeUpCacheRepository;
     private final WakeupService wakeupService;
+    private final GroupUserRepository groupUserRepository;
+    private final GroupRepository groupRepository;
     public SseEmitter add(Long groupId ,SseEmitter emitter) {
 //        this.emitters.add(emitter);
         this.emitters.put(groupId, emitter);
@@ -40,6 +48,22 @@ public class SseEmitters {
 
     public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId){
         List<UserResDto.WakeupDto> list = wakeUpCacheRepository.findWakeupInfo(groupId);
+
+        /**
+         * 캐싱된 데이터가 없으면 DB에서 캐싱과 동시에 그룹 유저들을 찾아 리스트를 반환한다.
+         */
+        if(list.isEmpty()){
+            Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
+            List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
+
+            for(GroupUser groupUser : groupUsers){
+                UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(groupUser.getUser(), groupUser.getNickname(), groupUser.getPhoneNum());
+                wakeUpCacheRepository.addSleepUser(groupId, wakeupDto);
+                list.add(wakeupDto);
+            }
+            return list;
+        }
+
         SseEmitter.SseEventBuilder event = SseEmitter.event()
                 .name("wakeupInfo")
                 .data(list);
