@@ -13,6 +13,8 @@ import com.prography1.eruna.domain.repository.GroupRepository;
 import com.prography1.eruna.domain.repository.UserRepository;
 import com.prography1.eruna.service.AlarmService;
 import com.prography1.eruna.web.UserResDto;
+import org.aspectj.lang.annotation.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,10 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.TextStyle;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 
 @SpringBootTest
@@ -42,8 +41,10 @@ public class AlarmServiceTest {
     @Autowired
     public DayOfWeekRepository dayOfWeekRepository;
 
+    @BeforeEach
+    @Transactional
     public void createAlarmRecordsForTest(){
-        int size = 10000;
+        int size = 100;
         for (int i = 0; i< size; i++){
             User user = User.builder()
                     .role(Role.USER)
@@ -52,16 +53,15 @@ public class AlarmServiceTest {
                     .build();
 
             Groups group = Groups.create(userRepository.save(user));
-
+            Week[] weeks = Week.values();
+            Week week = weeks[new Random().nextInt(weeks.length)];
             Alarm alarm = Alarm.builder()
-                    .alarmTime(LocalTime.now().plusMinutes(size/20000))
+                    .alarmTime(LocalTime.now().plusMinutes(size/20))
                     .alarmSound(AlarmSound.ALARM_SIU)
                     .finishDate(LocalDate.now())
                     .startDate(LocalDate.now())
                     .groups(groupRepository.save(group))
                     .build();
-            Week[] weeks = Week.values();
-            Week week = weeks[new Random().nextInt(weeks.length)];
 //            String day = LocalDate.now().getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
 //            Week week = Week.valueOf(day);
             DayOfWeek.DayOfWeekId dayOfWeekId = new DayOfWeek.DayOfWeekId(alarm.getId(), week);
@@ -74,14 +74,20 @@ public class AlarmServiceTest {
     @Test
     @Transactional
     public void measurePerformanceGettingTodayAlarms(){
-        createAlarmRecordsForTest();
+//        createAlarmRecordsForTest();
         String day = LocalDate.now().getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
         long start = System.currentTimeMillis();
 
-        List<Alarm> alarms = alarmRepository.findAllOnDay(day);
+//        List<Alarm> alarms = alarmRepository.findAllOnDay(day);
+        List<Alarm> alarms = alarmRepository.findByWeekList_DayOfWeekId_Day(Week.valueOf(day));
 
         long end = System.currentTimeMillis();
-
-        System.out.println("Take time: " + (end - start));
+        System.out.println("----------------------------------");
+        System.out.println("Take time: " + (end - start) + "ms");
+        System.out.println("found size : " + alarms.size());
+        Alarm randomAlarm = alarms.get(new Random().nextInt(alarms.size()));
+//        List<String> weekList = new ArrayList<>();
+//        randomAlarm.getWeekList().forEach(week-> weekList.add(week.getDayOfWeekId().getDay().name()));
+        System.out.println(randomAlarm.getWeekList());
     }
 }

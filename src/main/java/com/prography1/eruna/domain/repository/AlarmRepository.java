@@ -17,4 +17,6 @@ public interface AlarmRepository extends JpaRepository<Alarm, Long> {
             "                \"EXISTS (SELECT d FROM alarm.weekList d where d.dayOfWeekId.day = :today)\"", nativeQuery = true)
     List<Alarm> findAllOnDay(@Param("today") String today);
 
+    List<Alarm> findByWeekList_DayOfWeekId_Day(Week day);
+
 }
