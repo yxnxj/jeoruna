@@ -11,29 +11,24 @@ import com.prography1.eruna.domain.repository.AlarmRepository;
 import com.prography1.eruna.domain.repository.DayOfWeekRepository;
 import com.prography1.eruna.domain.repository.GroupRepository;
 import com.prography1.eruna.domain.repository.UserRepository;
-import com.prography1.eruna.service.AlarmService;
-import com.prography1.eruna.web.UserResDto;
-import jakarta.persistence.*;
-import org.aspectj.lang.annotation.Before;
-import org.hibernate.Hibernate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.sql.DataSource;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.TextStyle;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Random;
+import java.util.UUID;
+import org.junit.jupiter.api.Assertions;
 
 
 //@SpringBootTest
@@ -60,7 +55,7 @@ public class AlarmServiceTest {
     @BeforeEach
 //    @Transactional
     public void createAlarmRecordsForTest(){
-        int size = 100;
+        int size = 10000;
         for (int i = 0; i< size; i++){
             User user = User.builder()
                     .role(Role.USER)
@@ -72,7 +67,7 @@ public class AlarmServiceTest {
             Week[] weeks = Week.values();
             Week week = weeks[new Random().nextInt(weeks.length)];
             Alarm alarm = Alarm.builder()
-                    .alarmTime(LocalTime.now().plusMinutes(size/20))
+                    .alarmTime(LocalTime.now().plusMinutes(5))
                     .alarmSound(AlarmSound.ALARM_SIU)
                     .finishDate(LocalDate.now())
                     .startDate(LocalDate.now())
@@ -91,35 +86,37 @@ public class AlarmServiceTest {
 
     }
 
+    /**
+     * Result
+     *  - Take time: 776ms
+     *  - found size : 1426
+     */
     @Test
     @Transactional
     public void measurePerformanceGettingTodayAlarms(){
-//        createAlarmRecordsForTest();
         String day = LocalDate.now().getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
         long start = System.currentTimeMillis();
 
-//        List<Alarm> alarms = alarmRepository.findAllOnDay(day);
         List<Alarm> alarms = alarmRepository.findByWeekList_DayOfWeekId_Day(Week.valueOf(day));
-        for (Alarm alarm : alarms){
-            testEntityManager.refresh(testEntityManager.merge(alarm));
-        }
-//        boolean is = Hibernate.isInitialized(alarms);
 
         long end = System.currentTimeMillis();
+
+
+        for (Alarm alarm : alarms){
+            testEntityManager.refresh(testEntityManager.merge(alarm));
+            List<DayOfWeek> weekList = alarm.getWeekList();
+            for (DayOfWeek d : weekList){
+                Assertions.assertEquals(d.getDayOfWeekId().getDay(), Week.valueOf(day));
+            }
+        }
         System.out.println("----------------------------------");
         System.out.println("Take time: " + (end - start) + "ms");
         System.out.println("found size : " + alarms.size());
+        System.out.println("----------------------------------");
         Alarm randomAlarm = alarms.get(alarms.size()-1);
-//        entityManager.flush();
-//        entityManager.detach(randomAlarm);
-//        entityManager.clear();
-//        entityManager.close();
 
         Alarm refreshAlarm = alarmRepository.findById(randomAlarm.getId()).get();
         List<DayOfWeek> days  =dayOfWeekRepository.findAllByAlarm(randomAlarm);
 
-//        List<String> weekList = new ArrayList<>();
-//        randomAlarm.getWeekList().forEach(week-> weekList.add(week.getDayOfWeekId().getDay().name()));
-        System.out.println(randomAlarm.getWeekList());
     }
 }
