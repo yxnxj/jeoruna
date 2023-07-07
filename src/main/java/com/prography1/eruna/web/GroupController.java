@@ -142,6 +142,13 @@ public class GroupController {
         return new BaseResponse<>("ok");
     }
 
+    @Operation(summary = "그룹 삭제", description = "그룹 삭제")
+    @DeleteMapping("/{groupId}")
+    public BaseResponse<String> deleteGroup(@PathVariable Long groupId, @RequestBody UUID uuid){
+        groupService.deleteGroup(groupId, uuid.getUuid());
+        return new BaseResponse<>("ok");
+    }
+
   @Operation(summary = "그룹 기상 정보 페이지 접속", description = "유저들의 기상 정보 확인 API \n SSE 연결 수행 및 캐싱된 기상 정보를 반환한다.",
             responses = @ApiResponse(responseCode = "200", description = "SSE 연결 및 캐싱 완료 \n 그룹에 포함된 유저들의 기상정보를 리스트 형태로 반환한다.", content = @Content(array= @ArraySchema(schema = @Schema(implementation = UserResDto.WakeupDto.class))
             ,examples = {
@@ -165,7 +172,6 @@ public class GroupController {
             })))
     @GetMapping("/wake-up/{groupId}")
     public BaseResponse<List<UserResDto.WakeupDto>> sendWakeupInfo(@PathVariable Long groupId){
-
         return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId));
 //        return ResponseEntity.ok(emitter);
     }
