@@ -86,7 +86,7 @@ public class GroupService {
         return groupUserRepository.existsByGroupsAndNickname(group, nickname);
     }
 
-    public GroupUser joinGroupUser(String code, String uuid, String nickname, String phoneNum){
+    public Long joinGroupUser(String code, String uuid, String nickname, String phoneNum){
         Groups group = findByCode(code);
         User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
         GroupUser.GroupUserId groupUserId = GroupUser.GroupUserId.builder()
@@ -107,7 +107,8 @@ public class GroupService {
         } catch (SchedulerException e) {
             throw new RuntimeException(e);
         }
-        return groupUserRepository.save(groupUser);
+        groupUserRepository.save(groupUser);
+        return group.getId();
     }
 
     public Groups findGroupById(Long groupId) {

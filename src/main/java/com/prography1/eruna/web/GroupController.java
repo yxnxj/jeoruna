@@ -51,11 +51,11 @@ public class GroupController {
                                       "isSuccess": true,
                                       "code": 1000,
                                       "message": "요청에 성공하였습니다.",
-                                      "result": "ok"
+                                      "result": "1"
                                     }""")}
                     )))
     @PostMapping("/{code}")
-    public BaseResponse<String> userJoinGroup(@PathVariable String code, @RequestBody GroupJoinUserInfo groupJoinUserInfo){
+    public BaseResponse<Long> userJoinGroup(@PathVariable String code, @RequestBody GroupJoinUserInfo groupJoinUserInfo){
         if(!groupService.isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
         String uuid = groupJoinUserInfo.getUuid();
         if(!userService.isUserExist(uuid)) throw new BaseException(BaseResponseStatus.INVALID_UUID_TOKEN);
@@ -65,8 +65,8 @@ public class GroupController {
         if(groupService.isDuplicatedNickname(code, nickname)) throw new BaseException(BaseResponseStatus.DUPLICATED_NICKNAME);
 
 
-        groupService.joinGroupUser(code, uuid, nickname, groupJoinUserInfo.getPhoneNum());
-        return new BaseResponse<>("ok");
+
+        return new BaseResponse<>(groupService.joinGroupUser(code, uuid, nickname, groupJoinUserInfo.getPhoneNum()));
     }
 
 
