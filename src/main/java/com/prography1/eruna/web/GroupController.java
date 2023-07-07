@@ -37,8 +37,8 @@ public class GroupController {
     @Operation(summary = "그룹 만들기", description = "알람 그룹 만들기")
     @PostMapping("")
     public BaseResponse<CreatedGroup> createGroup(@RequestBody CreateGroup createGroup){
-        CreatedGroup createdGroup = new CreatedGroup(groupService.createGroup(createGroup));
-        return new BaseResponse<>(createdGroup);
+//        CreatedGroup createdGroup = new CreatedGroup(groupService.createGroup(createGroup));
+        return new BaseResponse<>(groupService.createGroup(createGroup));
     }
 
     @Operation(summary = "새 유저 그룹 합류", description = "그룹 링크를 공유받은 유저가 그룹에 참여한다.",

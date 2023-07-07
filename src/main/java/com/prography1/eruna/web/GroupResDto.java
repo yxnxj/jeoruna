@@ -20,6 +20,8 @@ public class GroupResDto {
     public static class CreatedGroup {
         @Schema(description = "GroupId", example = "1")
         private Long groupId;
+        @Schema(description = "Group Code", example = "ABCDEF")
+        private String groupCode;
     }
 
     @Schema(title = "재발급된 Group Code")

@@ -6,6 +6,7 @@ import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
+import com.prography1.eruna.web.GroupResDto;
 import lombok.RequiredArgsConstructor;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class GroupService {
     private final WakeUpCacheRepository wakeUpCacheRepository;
     private final AlarmService alarmService;
 
-    public Long createGroup(CreateGroup createGroup) {
+    public GroupResDto.CreatedGroup createGroup(CreateGroup createGroup) {
         AlarmInfo alarmInfo = createGroup.getAlarmInfo();
         User host = userRepository.findByUuid(createGroup.getUuid())
                 .orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
@@ -61,7 +62,7 @@ public class GroupService {
         for(DayOfWeek dayOfWeek : dayOfWeekList){
             dayOfWeekRepository.save(dayOfWeek);
         }
-        return group.getId();
+        return new GroupResDto.CreatedGroup(group.getId(), group.getCode());
     }
 
     private Alarm alarmInfoToAlarm(AlarmInfo alarmInfo, Groups group){
