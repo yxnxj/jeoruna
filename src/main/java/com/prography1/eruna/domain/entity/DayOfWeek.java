@@ -10,6 +10,7 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
+@Builder
 public class DayOfWeek extends BaseTimeEntity{
     @EmbeddedId
     private DayOfWeekId dayOfWeekId;
@@ -22,6 +23,9 @@ public class DayOfWeek extends BaseTimeEntity{
     @Embeddable
     @NoArgsConstructor
     @EqualsAndHashCode
+    @AllArgsConstructor
+    @Getter
+    @Builder
     public static class DayOfWeekId implements Serializable {
         private Long alarmId;
 

@@ -2,12 +2,15 @@ package com.prography1.eruna.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
+@Builder
 public class Wakeup{
     @Column(name="wakeup_id")
     @Id
@@ -22,8 +25,8 @@ public class Wakeup{
     @JoinColumn(name="user_id")
     private User user;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime date;
+    @Temporal(TemporalType.DATE)
+    private LocalDate date;
 
     private Boolean wakeupCheck;
 

@@ -2,26 +2,24 @@ package com.prography1.eruna.domain.entity;
 
 import com.prography1.eruna.domain.enums.AlarmSound;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
+import lombok.*;
 
-import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 public class Alarm extends BaseTimeEntity{
+
     @Column(name="alarm_id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="group_id")
     private Groups groups;
 
@@ -35,8 +33,27 @@ public class Alarm extends BaseTimeEntity{
     private AlarmSound alarmSound;
 
     @Temporal(TemporalType.TIME)
-    private Time alarmTime;
+    private LocalTime alarmTime;
 
-    @ColumnDefault("'Y'")
-    private String alarmRepeat;
+    private Boolean alarmRepeat;
+
+    @OneToMany(mappedBy="alarm", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<DayOfWeek> weekList = new ArrayList<>();
+
+
+    @Builder
+    public Alarm(Groups groups, LocalDate startDate, LocalDate finishDate, AlarmSound alarmSound,
+                 LocalTime alarmTime) {
+        this.groups = groups;
+        this.startDate = startDate;
+        this.finishDate = finishDate;
+        this.alarmSound = alarmSound;
+        this.alarmTime = alarmTime;
+        this.alarmRepeat = true;
+    }
+
+    public void update(AlarmSound alarmSound, LocalTime alarmTime){
+        this.alarmSound = alarmSound;
+        this.alarmTime = alarmTime;
+    }
 }

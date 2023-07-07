@@ -1,20 +1,23 @@
 package com.prography1.eruna.service;
 
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
+import com.google.firebase.messaging.*;
+import com.prography1.eruna.domain.entity.GroupUser;
 import com.prography1.eruna.domain.entity.User;
+import com.prography1.eruna.domain.enums.AlarmSound;
+import com.prography1.eruna.domain.repository.GroupUserRepository;
 import com.prography1.eruna.domain.repository.UserRepository;
 import com.prography1.eruna.response.BaseException;
-import com.prography1.eruna.response.BaseResponseStatus;
-import com.prography1.eruna.web.UserReqDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+
+import static com.prography1.eruna.response.BaseResponseStatus.USER_NOT_FOUND;
 
 @RequiredArgsConstructor
 @Transactional
@@ -23,6 +26,7 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final GroupUserRepository groupUserRepository;
 
     private final FirebaseMessaging firebaseMessaging;
 
@@ -33,16 +37,16 @@ public class UserService {
         return uuidToken;
     }
 
-
-
     /**
      * ChoYeonJun add
      *
      * 알람을 깨우는 푸시 메시지를 firebase cloud messaging API를 통해 보낸다.
      * TODO : 푸시 메시지 문구 협의 필요
      */
-
-    public String pushMessage(String fcmToken) {
+    public String pushMessage(String fcmToken){
+        return pushMessage(fcmToken, AlarmSound.ALARM_SIU.getFilename());
+    }
+    public String pushMessage(String fcmToken, String filename) {
 
         /**
          * Client에서 onNotification 이벤트로 알람을 받기 때문에 Message에 notification을 꼭 넣어주어야 알람이 발생한다.
@@ -55,14 +59,21 @@ public class UserService {
         Message msg = Message.builder()
                 .setNotification(notification)
                 .setToken(fcmToken)
-//                .putData("body", "일어나세요!")
+                .setApnsConfig(
+                        ApnsConfig.builder()
+                                .setAps(Aps.builder()
+                                        .setSound(filename)
+                                        .build())
+                                .build()
+                )
+//                .putData("sound", "siu, default")
                 .build();
         try {
             String response = firebaseMessaging.send(msg);
             log.info("response : " + response);
             return response;
         } catch (FirebaseMessagingException e) {
-            log.error(e.getMessage());
+            log.error(e.getMessage()  + ", token: " + fcmToken);
             return e.getMessage();
 //            throw new BaseException(BaseResponseStatus.INVALID_FCM_TOKEN);
         }
@@ -89,6 +100,15 @@ public class UserService {
     }
 
     public User findByUUID(String uuid){
-        return userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        return userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(USER_NOT_FOUND));
+    }
+
+    public Long findGroupIdByUUID(String uuid) {
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(USER_NOT_FOUND));
+        Optional<GroupUser> groupUser = groupUserRepository.findByUser(user);
+        if(groupUser.isEmpty())
+            return null;
+        else
+            return groupUser.get().getGroups().getId();
     }
 }

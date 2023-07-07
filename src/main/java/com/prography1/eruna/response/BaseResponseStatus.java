@@ -23,6 +23,14 @@ public enum BaseResponseStatus {
     INVALID_FCM_TOKEN(false,2004,"유효하지 않은 FCM 토큰입니다."),
     DUPLICATED_NICKNAME(false,2005,"이미 존재하는 닉네임입니다."),
     NOT_HOST(false,2006,"host 권한이 필요합니다."),
+    NOT_FOUND_GROUP(false,2007,"해당 그룹을 찾을 수 없습니다."),
+    NOT_FOUND_GROUP_USER(false,2008,"해당 그룹멤버를 찾을 수 없습니다."),
+    NOT_FOUND_ALARM(false, 2009, "해당 알람 정보를 찾을 수 없습니다."),
+    ALREADY_IN_GROUP_USER(false, 2010, "이미 그룹 내에 존재하는 유저입니다."),
+    HOST_CANNOT_EXIT(false, 2011, "방장은 방을 나갈 수 없습니다."),
+
+
+
 
     /**
      * 3000 : Response 오류
