@@ -205,4 +205,13 @@ public class GroupService {
             throw new BaseException(NOT_FOUND_GROUP_USER);
         }
     }
+
+    public void deleteGroup(Long groupId, String uuid) {
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+        Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        if(!isHost(group, user)){
+            throw new BaseException(NOT_HOST);
+        }
+        groupRepository.delete(group);
+    }
 }
