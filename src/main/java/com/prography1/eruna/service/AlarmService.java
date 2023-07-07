@@ -62,7 +62,13 @@ public class AlarmService {
 
     }
 
-    private void createJob(Alarm alarm, User user) throws SchedulerException {
+    public void createJob(Alarm alarm, User user) throws SchedulerException {
+
+
+        LocalTime time = alarm.getAlarmTime();
+        if(LocalTime.now().isAfter(time)){
+            return;
+        }
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("fcmToken", user.getFcmToken());
         jobDataMap.put("uuid", user.getUuid());

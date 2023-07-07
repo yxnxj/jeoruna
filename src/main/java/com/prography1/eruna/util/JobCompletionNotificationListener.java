@@ -9,6 +9,7 @@ import com.prography1.eruna.domain.repository.GroupUserRepository;
 import com.prography1.eruna.domain.repository.WakeUpCacheRepository;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
+import com.prography1.eruna.service.AlarmService;
 import com.prography1.eruna.service.UserService;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobCompletionNotificationListener.class);
     private final Scheduler scheduler;
     private final GroupRepository groupRepository;
-    private final UserService userService;
+    private final AlarmService alarmService;
     private final GroupUserRepository groupUserRepository;
     private final WakeUpCacheRepository wakeUpCacheRepository;
     @Override
@@ -54,10 +55,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
                 for(int i = 0 ; i < alarms.size(); i++){
                     Alarm alarm = alarms.get(i);
 
-                    LocalTime time = alarm.getAlarmTime();
-                    if(LocalTime.now().isAfter(time)){
-                        continue;
-                    }
+
                     Groups group = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.DATABASE_ERROR));
 
                     createIndividualSchedule(group, alarm);
@@ -70,6 +68,10 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     }
 
     private void createIndividualSchedule(Groups group, Alarm alarm) throws SchedulerException {
+        LocalTime time = alarm.getAlarmTime();
+        if(LocalTime.now().isAfter(time)){
+            return;
+        }
         List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
         for (GroupUser groupUser : groupUsers) {
             User user = groupUser.getUser();
@@ -77,7 +79,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
             String phoneNum = groupUser.getPhoneNum();
             UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(user, nickname, phoneNum);
             wakeUpCacheRepository.addSleepUser(group.getId(), wakeupDto);
-
+            alarmService.createJob(alarm, user);
             String fcmToken = user.getFcmToken();
             JobDataMap jobDataMap = new JobDataMap();
             jobDataMap.put("fcmToken", user.getFcmToken());
