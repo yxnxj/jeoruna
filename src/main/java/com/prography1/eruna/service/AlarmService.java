@@ -65,6 +65,8 @@ public class AlarmService {
     private void createJob(Alarm alarm, User user) throws SchedulerException {
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("fcmToken", user.getFcmToken());
+        jobDataMap.put("uuid", user.getUuid());
+        jobDataMap.put("alarmSound", alarm.getAlarmSound().toString());
 
         JobDetail job = JobBuilder
                 .newJob(SendFcmJob.class)
