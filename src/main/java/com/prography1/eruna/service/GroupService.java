@@ -99,6 +99,13 @@ public class GroupService {
                 .nickname(nickname)
                 .phoneNum(phoneNum)
                 .build();
+        Alarm alarm = alarmRepository.findByGroups(group).orElseThrow(() -> new BaseException(NOT_FOUND_ALARM));
+        List<DayOfWeek> dayOfWeekList = dayOfWeekRepository.findAllByAlarm(alarm);
+        try {
+            alarmService.addAlarmScheduleOnCreate(alarm, groupUser, dayOfWeekList);
+        } catch (SchedulerException e) {
+            throw new RuntimeException(e);
+        }
         return groupUserRepository.save(groupUser);
     }
 
