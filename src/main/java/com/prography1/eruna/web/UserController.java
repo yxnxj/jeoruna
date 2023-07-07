@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @Operation(summary = "UUID로 유저 그룹Id 받아오기", description = "UUID로 유저 그룹Id 받아오기 그룹 없으면 null")
-    @GetMapping("/group")
+    @PostMapping("/group")
     public BaseResponse<GroupId> getUserGroupId(@RequestBody RequiredUUID uuid){
         return new BaseResponse<>(new GroupId(userService.findGroupIdByUUID(uuid.getUuid())));
     }
