@@ -91,6 +91,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
                     .withIdentity(user.getUuid())
                     .usingJobData(jobDataMap)
                     .build();
+            if(scheduler.checkExists(job.getKey())) continue;
             LOGGER.info("__________Schedule__________");
             LOGGER.info("group : " + group.getId() + ", user : " + user.getId() + ", alarm : " + alarm.getAlarmTime());
             scheduler.scheduleJob(job, setFcmJobTrigger(alarm.getAlarmTime()));

@@ -79,6 +79,7 @@ public class AlarmService {
                 .withIdentity(user.getUuid())
                 .usingJobData(jobDataMap)
                 .build();
+        if(scheduler.checkExists(job.getKey())) return;
         LOGGER.info("__________Schedule__________");
         LOGGER.info("group : " + alarm.getGroups().getId() + ", alarm : " + alarm.getAlarmTime());
         scheduler.scheduleJob(job, setFcmJobTrigger(alarm.getAlarmTime()));
