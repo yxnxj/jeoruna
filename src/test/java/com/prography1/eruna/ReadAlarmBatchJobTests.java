@@ -26,6 +26,7 @@ import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.LineAggregator;
+import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.JobRepositoryTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
@@ -150,13 +151,20 @@ class ReadAlarmBatchConfiguration {
 
     @Bean
     public FlatFileItemWriter<Alarm> writer() throws Exception {
+        BeanWrapperFieldExtractor<Alarm> fieldExtractor = new BeanWrapperFieldExtractor<>();
+        fieldExtractor.setNames(new String[] {"id", "alarmSound", "alarmTime"});
+        fieldExtractor.afterPropertiesSet();
 
+        DelimitedLineAggregator<Alarm> lineAggregator = new DelimitedLineAggregator<>();
+        lineAggregator.setDelimiter(",");
+        lineAggregator.setFieldExtractor(fieldExtractor);
         return new FlatFileItemWriterBuilder<Alarm>()
                 .name("itemWriter")
                 .resource(new FileSystemResource(
                         "output/output.txt"))
-                .delimited().delimiter(", ")
-                .names(new String[] {"id"}).build();
+//                .lineAggregator(new PassThroughLineAggregator<>())
+                .lineAggregator(lineAggregator)
+                .build();
     }
 
 
