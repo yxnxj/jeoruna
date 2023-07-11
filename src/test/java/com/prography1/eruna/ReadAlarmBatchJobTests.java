@@ -22,6 +22,7 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.batch.item.file.FlatFileItemWriter;
+import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.LineAggregator;
@@ -149,30 +150,13 @@ class ReadAlarmBatchConfiguration {
 
     @Bean
     public FlatFileItemWriter<Alarm> writer() throws Exception {
-        WritableResource outputResource = new FileSystemResource("output/outputData");
-        //Create writer instance
-        FlatFileItemWriter<Alarm> writer = new FlatFileItemWriter<>();
 
-        //Set output file location
-        writer.setResource(outputResource);
-
-        //All job repetitions should "append" to same output file
-        writer.setAppendAllowed(true);
-
-        //Name field values sequence based on object properties
-        LineAggregator<Alarm> aggregator = item -> {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.registerModule(new JavaTimeModule()).writeValueAsString("Alarm");
-                return mapper.writeValueAsString(item);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-            return "";
-        };
-        writer.setLineAggregator(aggregator);
-        writer.afterPropertiesSet();
-        return writer;
+        return new FlatFileItemWriterBuilder<Alarm>()
+                .name("itemWriter")
+                .resource(new FileSystemResource(
+                        "output/output.txt"))
+                .delimited().delimiter(", ")
+                .names(new String[] {"id"}).build();
     }
 
 
