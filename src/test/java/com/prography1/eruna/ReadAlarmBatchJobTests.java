@@ -1,5 +1,8 @@
 package com.prography1.eruna;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.prography1.eruna.domain.entity.Alarm;
 import com.prography1.eruna.domain.entity.DayOfWeek;
 import jakarta.persistence.EntityManagerFactory;
@@ -21,12 +24,14 @@ import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilde
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
+import org.springframework.batch.item.file.transform.LineAggregator;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.JobRepositoryTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -44,6 +49,7 @@ import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Properties;
 
 @Configuration
 //@RequiredArgsConstructor
@@ -66,8 +72,19 @@ class DataSourceConfig {
         em.setDataSource(dataSource());
         em.setPackagesToScan(new String[] { "\\com.prography1.eruna.domain" });
 
+        Properties properties = new Properties();
+        properties.setProperty("show-sql", "true");
+        properties.setProperty("hibernate.format_sql", "true");
+        properties.setProperty("hibernate.physical_naming_strategy",
+                "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy");
+//        properties.setProperty("hibernate.implicit_naming_strategy" , "org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy");
+//        properties.setProperty("hibernate.physical_naming_strategy" , "com.prography1.eruna.CustomPhysicalNamingStrategy");
+//        properties.setProperty("hibernate.naming.strategy" , "org.hibernate.cfg.ImprovedNamingStrategy ");
+        em.setJpaProperties(properties);
+
         JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
+        em.afterPropertiesSet();
 
         return em;
     }
@@ -94,7 +111,7 @@ class ReadAlarmBatchConfiguration {
         String today = localDate.getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
         HashMap<String, Object> paramValues = new HashMap<>();
         String query =
-                "SELECT alarm.id FROM Alarm alarm";
+                "SELECT alarm FROM Alarm alarm";
 //                        + "WHERE EXISTS (SELECT d FROM alarm.weekList d where d.dayOfWeekId.day = :today)";
 //        paramValues.put("today", Week.valueOf(today));
         logger.info("Day: " + today);
@@ -121,7 +138,7 @@ class ReadAlarmBatchConfiguration {
 
 
     @Bean
-    public Step readAlarmsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, EntityManagerFactory entityManagerFactory) {
+    public Step readAlarmsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, EntityManagerFactory entityManagerFactory) throws Exception {
         return new StepBuilder("step", jobRepository)
                 .<DayOfWeek, Alarm>chunk(10, transactionManager)
                 .reader(jpaPagingItemReader(entityManagerFactory))
@@ -131,9 +148,8 @@ class ReadAlarmBatchConfiguration {
     }
 
     @Bean
-    public FlatFileItemWriter<Alarm> writer()
-    {
-        WritableResource outputResource = new FileSystemResource("output/outputData.csv");
+    public FlatFileItemWriter<Alarm> writer() throws Exception {
+        WritableResource outputResource = new FileSystemResource("output/outputData");
         //Create writer instance
         FlatFileItemWriter<Alarm> writer = new FlatFileItemWriter<>();
 
@@ -144,16 +160,18 @@ class ReadAlarmBatchConfiguration {
         writer.setAppendAllowed(true);
 
         //Name field values sequence based on object properties
-        writer.setLineAggregator(new DelimitedLineAggregator<Alarm>() {
-            {
-                setDelimiter(",");
-                setFieldExtractor(new BeanWrapperFieldExtractor<Alarm>() {
-                    {
-                        setNames(new String[] {"id"});
-                    }
-                });
+        LineAggregator<Alarm> aggregator = item -> {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.registerModule(new JavaTimeModule()).writeValueAsString("Alarm");
+                return mapper.writeValueAsString(item);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
             }
-        });
+            return "";
+        };
+        writer.setLineAggregator(aggregator);
+        writer.afterPropertiesSet();
         return writer;
     }
 
@@ -171,6 +189,7 @@ class ReadAlarmBatchConfiguration {
 
 @SpringBatchTest
 @SpringJUnitConfig(ReadAlarmBatchConfiguration.class)
+//@SpringBootTest
 public class ReadAlarmBatchJobTests {
 
     @Autowired
