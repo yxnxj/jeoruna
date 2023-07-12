@@ -31,12 +31,11 @@ import static com.prography1.eruna.util.SendFcmJob.setFcmJobTrigger;
 @Slf4j
 public class AlarmService {
     private final Scheduler scheduler;
-    private static final Logger LOGGER = LoggerFactory.getLogger(AlarmService.class);
     private final GroupUserRepository groupUserRepository;
     private final WakeUpCacheRepository wakeUpCacheRepository;
 
-    public void editAlarmScheduleNow(Alarm alarm, Groups group, List<DayOfWeek> dayOfWeeks) throws SchedulerException {
-        if(!isTodayAlarm(dayOfWeeks)) return;
+    public void editAlarmScheduleNow(Alarm alarm, Groups group, List<DayOfWeek> days) {
+        if(!isValidAlarmAtTimeAndDay(alarm)) return;
 
         List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
 
@@ -47,30 +46,20 @@ public class AlarmService {
             UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(user, nickname, phoneNum);
             wakeUpCacheRepository.addSleepUser(group.getId(), wakeupDto);
 
-            JobKey jobKey = JobKey.jobKey(user.getUuid());
-            scheduler.deleteJob(jobKey);
-
             createJob(alarm, user);
         }
     }
-    public void addAlarmScheduleOnCreate(Alarm alarm, GroupUser groupUser, List<DayOfWeek> days) throws SchedulerException {
-        if (!isTodayAlarm(days)) return;
+    public void addAlarmScheduleOnCreate(Alarm alarm, GroupUser groupUser, List<DayOfWeek> days) {
+        if(!isValidAlarmAtTimeAndDay(alarm)) return;
 
         User host = groupUser.getUser();
         UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(host, groupUser.getNickname(), groupUser.getPhoneNum());
         wakeUpCacheRepository.addSleepUser(groupUser.getGroups().getId(), wakeupDto);
 
         createJob(alarm, host);
-
     }
 
-    public void createJob(Alarm alarm, User user) throws SchedulerException {
-
-
-        LocalTime time = alarm.getAlarmTime();
-        if(LocalTime.now().isAfter(time)){
-            return;
-        }
+    private void createJob(Alarm alarm, User user) {
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("fcmToken", user.getFcmToken());
         jobDataMap.put("uuid", user.getUuid());
@@ -108,6 +97,18 @@ public class AlarmService {
         }
 
         return false;
+    }
+
+    private boolean isAfterAlarmFromNow(Alarm alarm){
+        LocalTime time = alarm.getAlarmTime();
+        if(time.isAfter(LocalTime.now())){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isValidAlarmAtTimeAndDay(Alarm alarm){
+        return isAfterAlarmFromNow(alarm) && isTodayAlarm(alarm.getWeekList());
     }
 
     public void createAlarmScheduleInGroup(Alarm alarm) {
