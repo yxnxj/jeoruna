@@ -11,6 +11,7 @@ import com.prography1.eruna.util.JobCompletionNotificationListener;
 import com.prography1.eruna.util.SendFcmJob;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ import static com.prography1.eruna.util.SendFcmJob.setFcmJobTrigger;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AlarmService {
     private final Scheduler scheduler;
     private static final Logger LOGGER = LoggerFactory.getLogger(AlarmService.class);
@@ -79,10 +81,19 @@ public class AlarmService {
                 .withIdentity(user.getUuid())
                 .usingJobData(jobDataMap)
                 .build();
-        if(scheduler.checkExists(job.getKey())) return;
-        LOGGER.info("__________Schedule__________");
-        LOGGER.info("group : " + alarm.getGroups().getId() + ", alarm : " + alarm.getAlarmTime());
-        scheduler.scheduleJob(job, setFcmJobTrigger(alarm.getAlarmTime()));
+        try{
+            if(scheduler.checkExists(job.getKey())) {
+                JobKey jobKey = JobKey.jobKey(user.getUuid());
+                scheduler.deleteJob(jobKey);
+            }
+            log.info("__________Schedule__________");
+            log.info("group : " + alarm.getGroups().getId() + ", alarm : " + alarm.getAlarmTime());
+            scheduler.scheduleJob(job, setFcmJobTrigger(alarm.getAlarmTime()));
+        }catch (SchedulerException e){
+            log.error("SCHEDULER ERROR : " + e.getMessage());
+            throw new BaseException(BaseResponseStatus.SCHEDULER_ERROR);
+        }
+
     }
 
     private boolean isTodayAlarm(List<DayOfWeek> days){
@@ -91,12 +102,32 @@ public class AlarmService {
 
         for (DayOfWeek storedDay : days){
             if(day.equals(storedDay.getDayOfWeekId().getDay().toString())) {
-                LOGGER.info("Day: " + day);
+                log.info("Day: " + day);
                 return true;
             }
         }
 
         return false;
+    }
+
+    public void createAlarmScheduleInGroup(Alarm alarm) {
+        createAlarmScheduleInGroup(alarm, alarm.getGroups());
+    }
+
+    public void createAlarmScheduleInGroup(Alarm alarm, Groups group) {
+        List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
+        createGroupUsersSchedule(groupUsers, alarm);
+    }
+
+    private void createGroupUsersSchedule(List<GroupUser> groupUsers, Alarm alarm) {
+        for (GroupUser groupUser : groupUsers) {
+            User user = groupUser.getUser();
+            String nickname = groupUser.getNickname();
+            String phoneNum = groupUser.getPhoneNum();
+            UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(user, nickname, phoneNum);
+            wakeUpCacheRepository.addSleepUser(groupUser.getGroups().getId(), wakeupDto);
+            createJob(alarm, user);
+        }
     }
 
 }
