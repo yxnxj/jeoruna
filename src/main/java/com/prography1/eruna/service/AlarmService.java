@@ -36,19 +36,9 @@ public class AlarmService {
 
     public void editAlarmScheduleNow(Alarm alarm, Groups group, List<DayOfWeek> days) {
         if(!isValidAlarmAtTimeAndDay(alarm)) return;
-
-        List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
-
-        for (GroupUser groupUser : groupUsers) {
-            User user = groupUser.getUser();
-            String nickname = groupUser.getNickname();
-            String phoneNum = groupUser.getPhoneNum();
-            UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(user, nickname, phoneNum);
-            wakeUpCacheRepository.addSleepUser(group.getId(), wakeupDto);
-
-            createJob(alarm, user);
-        }
+        createAlarmScheduleInGroup(alarm, group);
     }
+
     public void addAlarmScheduleOnCreate(Alarm alarm, GroupUser groupUser, List<DayOfWeek> days) {
         if(!isValidAlarmAtTimeAndDay(alarm)) return;
 
