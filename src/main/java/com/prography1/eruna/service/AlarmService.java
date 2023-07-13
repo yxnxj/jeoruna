@@ -33,7 +33,6 @@ public class AlarmService {
     private final WakeUpCacheRepository wakeUpCacheRepository;
 
     public void editAlarmScheduleNow(Alarm alarm, Groups group, List<DayOfWeek> days) {
-        if(!isValidAlarmAtTimeAndDay(alarm, days)) return;
         createAlarmScheduleInGroup(alarm, group);
     }
 
@@ -107,7 +106,7 @@ public class AlarmService {
          */
         List<DayOfWeek> days = dayOfWeekRepository.findAllByAlarm(alarm);
 
-        return isAfterAlarmFromNow(alarm) && isTodayAlarm(days);
+        return isValidAlarmAtTimeAndDay(alarm, days);
     }
 
     public void createAlarmScheduleInGroup(Alarm alarm) {
