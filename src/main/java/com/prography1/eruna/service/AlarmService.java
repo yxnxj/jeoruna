@@ -121,6 +121,7 @@ public class AlarmService {
     }
 
     private void createGroupUsersSchedule(List<GroupUser> groupUsers, Alarm alarm) {
+        if (!isValidAlarmAtTimeAndDay(alarm)) return;
         for (GroupUser groupUser : groupUsers) {
             User user = groupUser.getUser();
             String nickname = groupUser.getNickname();

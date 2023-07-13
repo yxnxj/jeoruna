@@ -55,11 +55,8 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
                 for(int i = 0 ; i < alarms.size(); i++){
                     Alarm alarm = alarms.get(i);
 
-
                     Groups group = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.DATABASE_ERROR));
-
                     alarmService.createAlarmScheduleInGroup(alarm, group);
-
                 }
             } catch (SchedulerException e) {
                 throw new RuntimeException(e);
