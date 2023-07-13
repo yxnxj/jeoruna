@@ -1,10 +1,7 @@
 package com.prography1.eruna.service;
 
 import com.prography1.eruna.domain.entity.*;
-import com.prography1.eruna.domain.repository.AlarmRepository;
-import com.prography1.eruna.domain.repository.GroupRepository;
-import com.prography1.eruna.domain.repository.GroupUserRepository;
-import com.prography1.eruna.domain.repository.WakeUpCacheRepository;
+import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.util.JobCompletionNotificationListener;
@@ -32,15 +29,16 @@ import static com.prography1.eruna.util.SendFcmJob.setFcmJobTrigger;
 public class AlarmService {
     private final Scheduler scheduler;
     private final GroupUserRepository groupUserRepository;
+    private final DayOfWeekRepository dayOfWeekRepository;
     private final WakeUpCacheRepository wakeUpCacheRepository;
 
     public void editAlarmScheduleNow(Alarm alarm, Groups group, List<DayOfWeek> days) {
-        if(!isValidAlarmAtTimeAndDay(alarm)) return;
+        if(!isValidAlarmAtTimeAndDay(alarm, days)) return;
         createAlarmScheduleInGroup(alarm, group);
     }
 
     public void addAlarmScheduleOnCreate(Alarm alarm, GroupUser groupUser, List<DayOfWeek> days) {
-        if(!isValidAlarmAtTimeAndDay(alarm)) return;
+        if(!isValidAlarmAtTimeAndDay(alarm, days)) return;
 
         User host = groupUser.getUser();
         UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(host, groupUser.getNickname(), groupUser.getPhoneNum());
@@ -97,8 +95,19 @@ public class AlarmService {
         return false;
     }
 
+    private boolean isValidAlarmAtTimeAndDay(Alarm alarm, List<DayOfWeek> days){
+        return isAfterAlarmFromNow(alarm) && isTodayAlarm(days);
+    }
+
     private boolean isValidAlarmAtTimeAndDay(Alarm alarm){
-        return isAfterAlarmFromNow(alarm) && isTodayAlarm(alarm.getWeekList());
+        /**
+         * alarm 생성 후 alarm.weeklist가 연결되어 있지 않은 alarm entity가
+         * persistence context에 저장되어 있지 않은 상황을 대비해
+         * repository에서 찾아서 사용한다.
+         */
+        List<DayOfWeek> days = dayOfWeekRepository.findAllByAlarm(alarm);
+
+        return isAfterAlarmFromNow(alarm) && isTodayAlarm(days);
     }
 
     public void createAlarmScheduleInGroup(Alarm alarm) {
