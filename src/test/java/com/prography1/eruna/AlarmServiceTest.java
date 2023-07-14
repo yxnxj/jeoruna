@@ -55,7 +55,7 @@ public class AlarmServiceTest {
     public TestEntityManager testEntityManager;
 
 
-    @BeforeEach
+//    @BeforeEach
 //    @Transactional
     public void createAlarmRecordsForTest(){
         int size = 10000;
@@ -96,12 +96,13 @@ public class AlarmServiceTest {
      */
     @Test
 //    @Transactional
-    @Rollback(false)
+//    @Rollback(false)
     public void measurePerformanceGettingTodayAlarms(){
         String day = LocalDate.now().getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
         long start = System.currentTimeMillis();
 
-        List<Alarm> alarms = alarmRepository.findByWeekList_DayOfWeekId_Day(Week.valueOf(day));
+//        List<Alarm> alarms = alarmRepository.findByWeekList_DayOfWeekId_Day(Week.valueOf(day));
+        List<Alarm> alarms = dayOfWeekRepository.findAllAlarmsByDay(Week.valueOf(day));
 
         long end = System.currentTimeMillis();
 
