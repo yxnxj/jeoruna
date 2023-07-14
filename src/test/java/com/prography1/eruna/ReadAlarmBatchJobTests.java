@@ -124,7 +124,7 @@ class ReadAlarmBatchConfiguration {
         return new JpaPagingItemReaderBuilder<DayOfWeek>()
                 .name("alarmReader")
                 .entityManagerFactory(entityManagerFactory)
-                .pageSize(2)
+                .pageSize(100)
                 .queryString(query)
 //                .queryString("select d from DayOfWeek d where d.dayOfWeekId.day = :today")
                 .parameterValues(paramValues)
@@ -144,10 +144,12 @@ class ReadAlarmBatchConfiguration {
     @Bean
     public Step readAlarmsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, EntityManagerFactory entityManagerFactory) throws Exception {
         return new StepBuilder("step", jobRepository)
-                .<DayOfWeek, Alarm>chunk(10, transactionManager)
+                .<DayOfWeek, Alarm>chunk(100, transactionManager)
                 .reader(jpaPagingItemReader(entityManagerFactory))
                 .writer(writer())
                 .allowStartIfComplete(true)
+                .listener(new AlarmStepExecutionListener())
+                .listener(new AlarmStepExecutionListener.WriterExecutionListener())
                 .build();
     }
 
