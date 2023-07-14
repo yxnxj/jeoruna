@@ -1,7 +1,6 @@
 package com.prography1.eruna.response;
 
 import lombok.Getter;
-import lombok.Setter;
 
 /**
  * 에러 코드 관리
