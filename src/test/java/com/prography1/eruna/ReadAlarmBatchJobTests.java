@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.prography1.eruna.domain.entity.Alarm;
 import com.prography1.eruna.domain.entity.DayOfWeek;
+import com.prography1.eruna.domain.enums.Week;
 import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -113,9 +114,10 @@ class ReadAlarmBatchConfiguration {
         String today = localDate.getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
         HashMap<String, Object> paramValues = new HashMap<>();
         String query =
-                "SELECT alarm FROM Alarm alarm";
+                "SELECT dayOfWeek.alarm From DayOfWeek dayOfWeek WHERE dayOfWeek.dayOfWeekId.day = :today ";
+//                "SELECT alarm FROM Alarm alarm"
 //                        + "WHERE EXISTS (SELECT d FROM alarm.weekList d where d.dayOfWeekId.day = :today)";
-//        paramValues.put("today", Week.valueOf(today));
+        paramValues.put("today", Week.valueOf(today));
         logger.info("Day: " + today);
 
 
