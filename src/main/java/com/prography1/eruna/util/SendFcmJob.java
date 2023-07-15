@@ -53,8 +53,9 @@ public class SendFcmJob implements Job {
                 scheduler.deleteJob(jobKey);
                 log.warn("fcmToken : " + fcmToken + "is not valid" );
                 log.warn("jobKey : " + jobKey.getName() + "schedule is deleted");
-            } catch (SchedulerException e) {
-                throw new RuntimeException(e);
+            }catch (SchedulerException e){
+                log.error("SCHEDULER ERROR : " + e.getMessage());
+                throw new BaseException(BaseResponseStatus.SCHEDULER_ERROR);
             }
         }
         userService.pushMessage(fcmToken, alarmSound.getFilename());

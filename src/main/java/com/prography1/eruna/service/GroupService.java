@@ -53,11 +53,9 @@ public class GroupService {
         }
         groupRepository.save(group);
         alarmRepository.save(alarm);
-        try {
-            alarmService.addAlarmScheduleOnCreate(alarm, groupUser, dayOfWeekList);
-        } catch (SchedulerException e) {
-            throw new RuntimeException(e);
-        }
+
+        alarmService.addAlarmScheduleOnCreate(alarm, groupUser, dayOfWeekList);
+
         groupUserRepository.save(groupUser);
         for(DayOfWeek dayOfWeek : dayOfWeekList){
             dayOfWeekRepository.save(dayOfWeek);
@@ -102,11 +100,9 @@ public class GroupService {
                 .build();
         Alarm alarm = alarmRepository.findByGroups(group).orElseThrow(() -> new BaseException(NOT_FOUND_ALARM));
         List<DayOfWeek> dayOfWeekList = dayOfWeekRepository.findAllByAlarm(alarm);
-        try {
-            alarmService.addAlarmScheduleOnCreate(alarm, groupUser, dayOfWeekList);
-        } catch (SchedulerException e) {
-            throw new RuntimeException(e);
-        }
+
+        alarmService.addAlarmScheduleOnCreate(alarm, groupUser, dayOfWeekList);
+
         groupUserRepository.save(groupUser);
         return group.getId();
     }
@@ -163,11 +159,9 @@ public class GroupService {
             dayOfWeekRepository.save(dayOfWeek);
         }
 
-        try {
-            alarmService.editAlarmScheduleNow(group.getAlarm(), group, newDayOfWeekList);
-        } catch (SchedulerException e) {
-            throw new RuntimeException(e);
-        }
+
+        alarmService.editAlarmScheduleNow(group.getAlarm(), group, newDayOfWeekList);
+
     }
 
     public boolean isUserExistInGroup(String uuid, String code){

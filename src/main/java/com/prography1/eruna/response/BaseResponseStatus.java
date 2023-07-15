@@ -41,6 +41,8 @@ public enum BaseResponseStatus {
      * 4000 : Database, Server 오류
      */
     DATABASE_ERROR(false, 4000, "데이터베이스 연결에 실패하였습니다."),
+
+    SCHEDULER_ERROR(false, 4001, "스케줄러 오류가 발생했습니다.")
     ;
 
     private final boolean isSuccess;
