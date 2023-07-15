@@ -214,7 +214,7 @@ class ReadAlarmBatchConfiguration {
 @SpringBatchTest
 @SpringJUnitConfig(ReadAlarmBatchConfiguration.class)
 //@SpringBootTest
-public class ReadAlarmBatchJobTests {
+public class BatchReadAlarmPerformanceTests {
 
     @Autowired
     private JobLauncherTestUtils jobLauncherTestUtils;
