@@ -42,8 +42,6 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     private final Scheduler scheduler;
     private final GroupRepository groupRepository;
     private final AlarmService alarmService;
-    private final GroupUserRepository groupUserRepository;
-    private final WakeUpCacheRepository wakeUpCacheRepository;
     @Override
 //    @Transactional
     public void afterJob(JobExecution jobExecution) {
