@@ -1,8 +1,5 @@
-package com.prography1.eruna;
+package com.prography1.eruna.batch;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.prography1.eruna.domain.entity.Alarm;
 import com.prography1.eruna.domain.entity.DayOfWeek;
 import com.prography1.eruna.domain.enums.Week;
@@ -20,32 +17,30 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
-import org.springframework.batch.item.file.transform.LineAggregator;
-import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.JobRepositoryTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.WritableResource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
+import reactor.util.annotation.NonNull;
 
 import javax.sql.DataSource;
 import java.time.LocalDate;
@@ -53,6 +48,39 @@ import java.time.format.TextStyle;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
+
+
+class AlarmStepExecutionListener implements StepExecutionListener {
+    private static long before;
+
+    @Override
+    public void beforeStep(@NonNull StepExecution stepExecution) {
+        before = System.currentTimeMillis();
+        System.out.println("----------------------------------");
+        System.out.println("before : " + before);
+        System.out.println("----------------------------------");
+        StepExecutionListener.super.beforeStep(stepExecution);
+    }
+
+
+    static class WriterExecutionListener implements ItemWriteListener<Alarm>{
+        long after;
+
+        @Override
+        public void beforeWrite(@NonNull Chunk<? extends Alarm> items) {
+            ItemWriteListener.super.beforeWrite(items);
+
+            after = System.currentTimeMillis();
+
+            System.out.println("----------------------------------");
+            System.out.println("after : " + after);
+            System.out.println("Take time: " + (after - before) + "ms");
+            System.out.println("----------------------------------");
+
+        }
+    }
+}
+
 
 @Configuration
 //@RequiredArgsConstructor
