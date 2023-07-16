@@ -10,6 +10,7 @@ import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
+import com.prography1.eruna.service.UserService;
 import com.prography1.eruna.util.SendFcmJob;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -62,7 +63,7 @@ import java.util.UUID;
 @SpringJUnitConfig(TestBatchConfig.class)
 @Import({
         FCMConfig.class})
-@EnableJpaRepositories("com.prography1.eruna.domain.repository")
+//@EnableJpaRepositories("com.prography1.eruna.domain.repository")
 //@DataJpaTest
 @EnableJpaAuditing
 //@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -108,7 +109,7 @@ public class BatchJobLaunchTests {
         this.jobRepositoryTestUtils.removeJobExecutions();
     }
 
-    public void createAlarmRecordsForTest(){
+    public void createAlarmRecordsForTest(int delayMinute){
         int size = 3;
         for (int i = 0; i< size; i++){
             User user = User.builder()
@@ -120,7 +121,7 @@ public class BatchJobLaunchTests {
             Groups group = Groups.create(userRepository.save(user));
 
             Alarm alarm = Alarm.builder()
-                    .alarmTime(LocalTime.now().plusMinutes(1))
+                    .alarmTime(LocalTime.now().plusMinutes(delayMinute))
                     .alarmSound(AlarmSound.ALARM_SIU)
                     .finishDate(LocalDate.now())
                     .startDate(LocalDate.now())
@@ -145,7 +146,8 @@ public class BatchJobLaunchTests {
     public void testMyJob() throws Exception {
         // given
         JobParameters jobParameters = this.jobLauncherTestUtils.getUniqueJobParameters();
-        createAlarmRecordsForTest();
+        int delayMinute = 1;
+        createAlarmRecordsForTest(delayMinute);
 
 
         // when
@@ -170,13 +172,16 @@ public class BatchJobLaunchTests {
         }
 
         List<TriggerKey> triggerKeys = scheduler.getTriggerKeys(GroupMatcher.anyGroup()).stream().toList();
-//        scheduler.start();
-//        Thread.sleep( 2 * 60 * 1000);
-//
-//        for(TriggerKey triggerKey : triggerKeys){
-//            Assertions.assertEquals(Trigger.TriggerState.COMPLETE, scheduler.getTriggerState(triggerKey));
-//        }
-//        Assertions.assertTrue(T);
+        scheduler.start();
+        Thread.sleep(   delayMinute * 60 * 1000 + 1000);
+
+        for(TriggerKey triggerKey : triggerKeys){
+            /**
+             * FCM Token 이 Random UUID로 생성되는 유효하지 않은 토큰이므로 JOB이 삭제된다.
+             * 삭제 됐으므로 Trigger의 상태는 NONE이다.
+             */
+            Assertions.assertEquals(Trigger.TriggerState.NONE, scheduler.getTriggerState(triggerKey));
+        }
     }
 
     @AfterEach

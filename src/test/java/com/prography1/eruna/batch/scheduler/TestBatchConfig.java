@@ -51,6 +51,9 @@ public class TestBatchConfig {
     @PersistenceUnit
     private EntityManagerFactory entityManagerFactory;
 
+    @Autowired
+    Scheduler scheduler;
+
     private static final Logger logger = LoggerFactory.getLogger(com.prography1.eruna.config.BatchConfig.class);
 
     @Bean
@@ -104,8 +107,8 @@ public class TestBatchConfig {
                 .build();
     }
 
-    @Bean
-    public Scheduler scheduler() throws SchedulerException {
-        return StdSchedulerFactory.getDefaultScheduler();
-    }
+//    @Bean
+//    public Scheduler scheduler() throws SchedulerException {
+//        return StdSchedulerFactory.getDefaultScheduler();
+//    }
 }
