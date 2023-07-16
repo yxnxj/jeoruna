@@ -1,6 +1,7 @@
 package com.prography1.eruna.batch.scheduler;
 
 
+import com.prography1.eruna.ErunaApplication;
 import com.prography1.eruna.config.FCMConfig;
 import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.enums.AlarmSound;
@@ -10,6 +11,8 @@ import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.util.SendFcmJob;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,10 +32,17 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.JobRepositoryTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,10 +56,14 @@ import java.util.UUID;
 
 
 @SpringBatchTest
+@SpringBootTest(classes = ErunaApplication.class, properties = "spring.main.allow-bean-definition-overriding=true")
+@ActiveProfiles("local")
+//@EnableAutoConfiguration
 @SpringJUnitConfig(TestBatchConfig.class)
-@Import({CustomConfig.class, FCMConfig.class})
+@Import({
+        CustomConfig.class,
+        FCMConfig.class})
 @EnableJpaRepositories("com.prography1.eruna.domain.repository")
-//@SpringBootTest
 //@DataJpaTest
 @EnableJpaAuditing
 //@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

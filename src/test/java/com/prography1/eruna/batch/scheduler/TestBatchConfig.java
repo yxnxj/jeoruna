@@ -7,8 +7,13 @@ import com.prography1.eruna.domain.repository.AlarmRepository;
 import com.prography1.eruna.util.AlarmItemProcessor;
 import com.prography1.eruna.util.AlarmsItemWriter;
 import com.prography1.eruna.util.JobCompletionNotificationListener;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceUnit;
 import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -23,10 +28,7 @@ import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.*;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.time.LocalDate;
@@ -40,9 +42,14 @@ import java.util.Locale;
 @ComponentScan(basePackages = {"com.prography1.eruna"}
         , excludeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {Configuration.class})}
 )
+//@Import(CustomConfig.class)
 public class TestBatchConfig {
-    @Autowired
-    EntityManagerFactory entityManagerFactory;
+
+//    @PersistenceContext
+//    private EntityManager entityManager;
+
+    @PersistenceUnit
+    private EntityManagerFactory entityManagerFactory;
 
     private static final Logger logger = LoggerFactory.getLogger(com.prography1.eruna.config.BatchConfig.class);
 
@@ -95,5 +102,10 @@ public class TestBatchConfig {
 //                .processor(alarmItemProcessor(alarmRepository))
                 .allowStartIfComplete(true)
                 .build();
+    }
+
+    @Bean
+    public Scheduler scheduler() throws SchedulerException {
+        return StdSchedulerFactory.getDefaultScheduler();
     }
 }
