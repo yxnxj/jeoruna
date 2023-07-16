@@ -2,45 +2,46 @@ package com.prography1.eruna.batch.scheduler;
 
 
 import com.prography1.eruna.config.FCMConfig;
-import com.prography1.eruna.domain.entity.Alarm;
-import com.prography1.eruna.domain.entity.DayOfWeek;
-import com.prography1.eruna.domain.entity.Groups;
-import com.prography1.eruna.domain.entity.User;
+import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.enums.AlarmSound;
 import com.prography1.eruna.domain.enums.Role;
 import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
-import jakarta.transaction.Transactional;
-import org.aspectj.lang.annotation.After;
+import com.prography1.eruna.response.BaseException;
+import com.prography1.eruna.response.BaseResponseStatus;
+import com.prography1.eruna.util.SendFcmJob;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
+import org.quartz.JobKey;
 import org.quartz.Scheduler;
-import org.springframework.batch.core.*;
+import org.quartz.Trigger;
+import org.quartz.TriggerKey;
+import org.quartz.impl.matchers.GroupMatcher;
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.JobRepositoryTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 import java.util.UUID;
 
 
@@ -69,6 +70,9 @@ public class BatchJobLaunchTests {
     Scheduler scheduler;
 
     @Autowired
+    SendFcmJob sendFcmJob;
+
+    @Autowired
     UserRepository userRepository;
 
     @Autowired
@@ -80,6 +84,8 @@ public class BatchJobLaunchTests {
     @Autowired
     AlarmRepository alarmRepository;
 
+    @Autowired
+    GroupUserRepository groupUserRepository;
 
     @BeforeEach
     public void setup(@Autowired Job job) {
@@ -101,13 +107,18 @@ public class BatchJobLaunchTests {
             Groups group = Groups.create(userRepository.save(user));
 
             Alarm alarm = Alarm.builder()
-                    .alarmTime(LocalTime.now().plusMinutes(5))
+                    .alarmTime(LocalTime.now().plusMinutes(1))
                     .alarmSound(AlarmSound.ALARM_SIU)
                     .finishDate(LocalDate.now())
                     .startDate(LocalDate.now())
                     .groups(groupRepository.save(group))
                     .build();
 
+            GroupUser groupUser = GroupUser.builder().user(user).groups(group).nickname("nickname")
+                    .phoneNum("01000000000")
+                    .groupUserId(GroupUser.GroupUserId.builder().groupId(group.getId()).userId(user.getId()).build())
+                    .build();
+            groupUserRepository.save(groupUser);
             String day = LocalDate.now().getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
             Week week = Week.valueOf(day);
             DayOfWeek.DayOfWeekId dayOfWeekId = new DayOfWeek.DayOfWeekId(alarm.getId(), week);
@@ -126,10 +137,33 @@ public class BatchJobLaunchTests {
 
         // when
         JobExecution jobExecution = this.jobLauncherTestUtils.launchJob(jobParameters);
+        String day = LocalDate.now().getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
+        List<Alarm> alarms = dayOfWeekRepository.findAllAlarmsByDay(Week.valueOf(day));
 
 
         // then
+
+        List<User> users = new ArrayList<>();
         Assertions.assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
+        List<JobKey> keys = scheduler.getJobKeys(GroupMatcher.anyGroup()).stream().toList();
+
+        for (Alarm alarm : alarms){
+            Groups group = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
+            List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
+            for(GroupUser groupUser : groupUsers){
+                users.add(groupUser.getUser());
+                Assertions.assertTrue(scheduler.checkExists(JobKey.jobKey(groupUser.getUser().getUuid())));
+            }
+        }
+
+        List<TriggerKey> triggerKeys = scheduler.getTriggerKeys(GroupMatcher.anyGroup()).stream().toList();
+//        scheduler.start();
+//        Thread.sleep( 2 * 60 * 1000);
+//
+//        for(TriggerKey triggerKey : triggerKeys){
+//            Assertions.assertEquals(Trigger.TriggerState.COMPLETE, scheduler.getTriggerState(triggerKey));
+//        }
+//        Assertions.assertTrue(T);
     }
 
     @AfterEach
