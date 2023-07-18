@@ -112,22 +112,5 @@ public class BatchConfig{
     }
 
 //    private final JobRepository jobRepository;
-    private final ApplicationContext applicationContext;
-    private final JobLauncher jobLauncher;
 
-
-
-    @Scheduled(cron = "0 0 0 * * *")
-//    @Scheduled(fixedRate = 1000)
-    public void launchJob() throws Exception {
-        Date date = new Date();
-
-        JobExecution jobExecution = jobLauncher.run(
-                (Job)applicationContext.getBean("readAlarmsJob")
-                ,new JobParametersBuilder().addDate("launchDate", date).toJobParameters()
-        );
-//            batchRunCounter.incrementAndGet();
-        logger.debug("Batch job ends with status as " + jobExecution.getStatus());
-        logger.debug("scheduler ends ");
-    }
 }
