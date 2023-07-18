@@ -12,16 +12,14 @@ import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.UserService;
 import com.prography1.eruna.util.SendFcmJob;
+import com.prography1.eruna.web.UserResDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.Trigger;
-import org.quartz.TriggerKey;
+import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
@@ -38,22 +36,29 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.TextStyle;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBatchTest
@@ -61,6 +66,7 @@ import java.util.UUID;
 //        , properties = "spring.main.allow-bean-definition-overriding=true"
 )
 @ActiveProfiles("local")
+@EnableAsync
 //@EnableAutoConfiguration
 //@SpringJUnitConfig(TestBatchConfig.class)
 //@Import({
@@ -107,6 +113,11 @@ public class BatchJobLaunchTests {
 
     @Autowired
     WakeUpCacheRepository wakeUpCacheRepository;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+
+
+    MockMvc mvc;
 
     @BeforeEach
     public void setup(@Autowired Job job) {
@@ -114,6 +125,8 @@ public class BatchJobLaunchTests {
         this.jobLauncherTestUtils.setJobLauncher(jobLauncher);
         this.jobLauncherTestUtils.setJob(job); // this is optional if the job is unique
         this.jobRepositoryTestUtils.removeJobExecutions();
+
+        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
     }
 
     @Test
@@ -248,4 +261,66 @@ public class BatchJobLaunchTests {
         }
 
     }
+
+    @Async
+    void startSchedule(int delayMinute){
+        try {
+            scheduler.start();
+            Thread.sleep(delayMinute * 60 * 1000);
+
+        } catch (SchedulerException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    @Autowired
+    private ThreadPoolTaskExecutor asyncTaskExecutor;
+
+    @Test
+    void wakeUpRequestTest() throws Exception {
+
+        //given
+        int delayMinute = 1;
+        int size = 3;
+        clearDB();
+        List<GroupUser> groupUsers = createAlarmRecordsForTest(size, delayMinute);
+
+        //when
+        launchJob();
+        startSchedule(delayMinute);
+        System.out.println("---------------await----------------");
+        String url = "/group/wake-up/{groupId}/{uuid}";
+        List<Groups> groups = groupRepository.findAll();
+        for (Groups group : groups) {
+            Assertions.assertTrue(wakeUpCacheRepository.isCachedGroupId(group.getId()));
+        }
+
+        try {
+            for (GroupUser groupUser : groupUsers) {
+                mvc.perform(post(url, groupUser.getGroups().getId(), groupUser.getUser().getUuid()))
+                        .andExpect(status().isOk())
+                ;
+            }
+            // then
+            for (Groups group : groups) {
+                Assertions.assertFalse(wakeUpCacheRepository.isCachedGroupId(group.getId()));
+            }
+            for (GroupUser groupUser : groupUsers) {
+                Optional<Wakeup> wakeup = wakeupRepository.findByUser(groupUser.getUser());
+
+                Assertions.assertTrue(wakeup.isPresent());
+                Assertions.assertTrue(wakeup.get().getWakeupCheck());
+            }
+//            boolean terminated = asyncTaskExecutor.getThreadPoolExecutor().awaitTermination(delayMinute * 60 + 20 * 60, TimeUnit.SECONDS); //유효한 fcmtoken일때
+            boolean terminated = asyncTaskExecutor.getThreadPoolExecutor().awaitTermination(delayMinute * 60 + 2 * 60, TimeUnit.SECONDS); //유효하지 않은 fcmtoken일때
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+
+
+
+
+    }
+
+
 }
