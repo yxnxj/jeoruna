@@ -1,5 +1,6 @@
 package com.prography1.eruna.batch;
 
+import com.prography1.eruna.ErunaApplication;
 import com.prography1.eruna.domain.entity.Alarm;
 import com.prography1.eruna.domain.entity.DayOfWeek;
 import com.prography1.eruna.domain.enums.Week;
@@ -30,9 +31,8 @@ import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.*;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -45,6 +45,7 @@ import reactor.util.annotation.NonNull;
 import javax.sql.DataSource;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
@@ -130,14 +131,14 @@ class DataSourceConfig {
 
 }
 
-@Configuration
-@Import(DataSourceConfig.class)
+//@Configuration
+//@Import(DataSourceConfig.class)
 @EnableBatchProcessing
 class ReadAlarmBatchConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(com.prography1.eruna.config.BatchConfig.class);
 
     @Bean
-    public JpaPagingItemReader<DayOfWeek> jpaPagingItemReader(EntityManagerFactory entityManagerFactory) {
+    public JpaPagingItemReader<DayOfWeek> testJpaPagingItemReader(EntityManagerFactory entityManagerFactory) {
         LocalDate localDate = LocalDate.now();
         String today = localDate.getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
         HashMap<String, Object> paramValues = new HashMap<>();
@@ -160,7 +161,7 @@ class ReadAlarmBatchConfiguration {
     }
 
     @Bean
-    public Job readAlarmsJob(JobRepository jobRepository,  @Qualifier("readAlarmsStep") Step step) {
+    public Job testReadAlarmsJob(JobRepository jobRepository,  @Qualifier("testReadAlarmsStep") Step step) {
         return new JobBuilder("readAlarmsJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(step)
@@ -170,11 +171,11 @@ class ReadAlarmBatchConfiguration {
 
 
     @Bean
-    public Step readAlarmsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, EntityManagerFactory entityManagerFactory) throws Exception {
+    public Step testReadAlarmsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, EntityManagerFactory entityManagerFactory) throws Exception {
         return new StepBuilder("step", jobRepository)
                 .<DayOfWeek, Alarm>chunk(100, transactionManager)
-                .reader(jpaPagingItemReader(entityManagerFactory))
-                .writer(writer())
+                .reader(testJpaPagingItemReader(entityManagerFactory))
+                .writer(testWriter())
                 .allowStartIfComplete(true)
                 .listener(new AlarmStepExecutionListener())
                 .listener(new AlarmStepExecutionListener.WriterExecutionListener())
@@ -182,7 +183,7 @@ class ReadAlarmBatchConfiguration {
     }
 
     @Bean
-    public FlatFileItemWriter<Alarm> writer() throws Exception {
+    public FlatFileItemWriter<Alarm> testWriter() throws Exception {
         BeanWrapperFieldExtractor<Alarm> fieldExtractor = new BeanWrapperFieldExtractor<>();
         fieldExtractor.setNames(new String[] {"id", "alarmSound", "alarmTime"});
         fieldExtractor.afterPropertiesSet();
@@ -200,20 +201,20 @@ class ReadAlarmBatchConfiguration {
     }
 
 
-    @Bean
-    public JobRepositoryFactoryBean jobRepository(DataSource dataSource, PlatformTransactionManager transactionManager) {
-        JobRepositoryFactoryBean jobRepositoryFactoryBean = new JobRepositoryFactoryBean();
-        jobRepositoryFactoryBean.setDataSource(dataSource);
-        jobRepositoryFactoryBean.setTransactionManager(transactionManager);
-        return jobRepositoryFactoryBean;
-    }
+//    @Bean
+//    public JobRepositoryFactoryBean testJobRepository(DataSource dataSource, PlatformTransactionManager transactionManager) {
+//        JobRepositoryFactoryBean jobRepositoryFactoryBean = new JobRepositoryFactoryBean();
+//        jobRepositoryFactoryBean.setDataSource(dataSource);
+//        jobRepositoryFactoryBean.setTransactionManager(transactionManager);
+//        return jobRepositoryFactoryBean;
+//    }
 
 
 }
 
 @SpringBatchTest
 @SpringJUnitConfig(ReadAlarmBatchConfiguration.class)
-//@SpringBootTest
+@SpringBootTest(classes = ErunaApplication.class)
 public class BatchReadAlarmPerformanceTests {
 
     @Autowired
@@ -230,7 +231,9 @@ public class BatchReadAlarmPerformanceTests {
 
 
     @BeforeEach
-    public void setup(@Autowired Job job) {
+    public void setup(
+            @Autowired @Qualifier(value = "testReadAlarmsJob") Job job
+            ) {
         this.jobLauncherTestUtils.setJobRepository(jobRepository);
         this.jobLauncherTestUtils.setJobLauncher(jobLauncher);
         this.jobLauncherTestUtils.setJob(job); // this is optional if the job is unique

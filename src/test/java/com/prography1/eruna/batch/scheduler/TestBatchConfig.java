@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.Locale;
 
 
-@Configuration
+//@Configuration
 @EnableBatchProcessing
 @ComponentScan(basePackages = {"com.prography1.eruna"}
         , excludeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {Configuration.class})}

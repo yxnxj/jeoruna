@@ -57,15 +57,17 @@ import java.util.UUID;
 
 
 @SpringBatchTest
-@SpringBootTest(classes = ErunaApplication.class, properties = "spring.main.allow-bean-definition-overriding=true")
+@SpringBootTest(classes = ErunaApplication.class
+//        , properties = "spring.main.allow-bean-definition-overriding=true"
+)
 @ActiveProfiles("local")
 //@EnableAutoConfiguration
-@SpringJUnitConfig(TestBatchConfig.class)
-@Import({
-        FCMConfig.class})
+//@SpringJUnitConfig(TestBatchConfig.class)
+//@Import({
+//        FCMConfig.class})
 //@EnableJpaRepositories("com.prography1.eruna.domain.repository")
 //@DataJpaTest
-@EnableJpaAuditing
+//@EnableJpaAuditing
 //@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class BatchJobLaunchTests {
     @Autowired
@@ -103,6 +105,10 @@ public class BatchJobLaunchTests {
 
     @BeforeEach
     public void setup(@Autowired Job job) {
+        alarmRepository.deleteAll();
+        groupRepository.deleteAll();
+        userRepository.deleteAll();
+
         this.jobLauncherTestUtils.setJobRepository(jobRepository);
         this.jobLauncherTestUtils.setJobLauncher(jobLauncher);
         this.jobLauncherTestUtils.setJob(job); // this is optional if the job is unique
@@ -182,13 +188,6 @@ public class BatchJobLaunchTests {
              */
             Assertions.assertEquals(Trigger.TriggerState.NONE, scheduler.getTriggerState(triggerKey));
         }
-    }
-
-    @AfterEach
-    void resetTables(){
-        alarmRepository.deleteAll();
-        groupRepository.deleteAll();
-        userRepository.deleteAll();
     }
 
 }
