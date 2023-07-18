@@ -116,6 +116,8 @@ public class BatchJobLaunchTests {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @Autowired
+    private ThreadPoolTaskExecutor asyncTaskExecutor;
 
     MockMvc mvc;
 
@@ -139,6 +141,27 @@ public class BatchJobLaunchTests {
         alarmRepository.deleteAll();
     }
 
+    void launchJob() {
+        JobParameters jobParameters = this.jobLauncherTestUtils.getUniqueJobParameters();
+
+        try {
+            JobExecution jobExecution = this.jobLauncherTestUtils.launchJob(jobParameters);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @Async
+    void startSchedule(int delayMinute){
+        try {
+            scheduler.start();
+            Thread.sleep(delayMinute * 60 * 1000);
+
+        } catch (SchedulerException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * size는 itemwriter에서 정의한 chunk보다 작아야 한다.
@@ -251,29 +274,8 @@ public class BatchJobLaunchTests {
         }
     }
 
-    void launchJob() {
-        JobParameters jobParameters = this.jobLauncherTestUtils.getUniqueJobParameters();
 
-        try {
-            JobExecution jobExecution = this.jobLauncherTestUtils.launchJob(jobParameters);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
 
-    }
-
-    @Async
-    void startSchedule(int delayMinute){
-        try {
-            scheduler.start();
-            Thread.sleep(delayMinute * 60 * 1000);
-
-        } catch (SchedulerException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    @Autowired
-    private ThreadPoolTaskExecutor asyncTaskExecutor;
 
     @Test
     void wakeUpRequestTest() throws Exception {
@@ -290,11 +292,13 @@ public class BatchJobLaunchTests {
         System.out.println("---------------await----------------");
         String url = "/group/wake-up/{groupId}/{uuid}";
         List<Groups> groups = groupRepository.findAll();
+        //batch job 후 기상 정보 캐싱 됐는지
         for (Groups group : groups) {
             Assertions.assertTrue(wakeUpCacheRepository.isCachedGroupId(group.getId()));
         }
 
         try {
+            //그룹 구성원 전체 기상 post
             for (GroupUser groupUser : groupUsers) {
                 mvc.perform(post(url, groupUser.getGroups().getId(), groupUser.getUser().getUuid()))
                         .andExpect(status().isOk())
@@ -302,11 +306,12 @@ public class BatchJobLaunchTests {
             }
             // then
             for (Groups group : groups) {
+                //그룹 구성원 모두 기상 시 캐싱 데이터 지워졌는지
                 Assertions.assertFalse(wakeUpCacheRepository.isCachedGroupId(group.getId()));
             }
             for (GroupUser groupUser : groupUsers) {
                 Optional<Wakeup> wakeup = wakeupRepository.findByUser(groupUser.getUser());
-
+                //기상 정보 db에 잘 저장됐는지
                 Assertions.assertTrue(wakeup.isPresent());
                 Assertions.assertTrue(wakeup.get().getWakeupCheck());
             }
