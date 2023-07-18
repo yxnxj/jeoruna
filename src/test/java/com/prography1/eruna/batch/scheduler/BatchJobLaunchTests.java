@@ -102,22 +102,43 @@ public class BatchJobLaunchTests {
 
     @Autowired
     GroupUserRepository groupUserRepository;
+    @Autowired
+    WakeupRepository wakeupRepository;
+
+    @Autowired
+    WakeUpCacheRepository wakeUpCacheRepository;
 
     @BeforeEach
     public void setup(@Autowired Job job) {
-        alarmRepository.deleteAll();
-        groupRepository.deleteAll();
-        userRepository.deleteAll();
-
         this.jobLauncherTestUtils.setJobRepository(jobRepository);
         this.jobLauncherTestUtils.setJobLauncher(jobLauncher);
         this.jobLauncherTestUtils.setJob(job); // this is optional if the job is unique
         this.jobRepositoryTestUtils.removeJobExecutions();
     }
 
-    public void createAlarmRecordsForTest(int delayMinute){
-        int size = 3;
-        for (int i = 0; i< size; i++){
+    @Test
+    void clearDB() {
+        wakeupRepository.deleteAll();
+        groupUserRepository.deleteAll();
+        groupRepository.deleteAll();
+
+        userRepository.deleteAll();
+        alarmRepository.deleteAll();
+    }
+
+
+    /**
+     * size는 itemwriter에서 정의한 chunk보다 작아야 한다.
+     * scheduler에 chunk로 정의한 수 (현재 100)의 데이터만큼 나누어 scheduler에 alarm job이 등록되기 때문에 테스트가 정확히 안 이뤄질 수 있다.
+     *
+     * @param size
+     * @param delayMinute
+     * @return
+     */
+    @Test
+    public List<GroupUser> createAlarmRecordsForTest(int size, int delayMinute) {
+        List<GroupUser> groupUsers = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
             User user = User.builder()
                     .role(Role.USER)
                     .uuid(UUID.randomUUID().toString())
@@ -134,26 +155,50 @@ public class BatchJobLaunchTests {
                     .groups(groupRepository.save(group))
                     .build();
 
-            GroupUser groupUser = GroupUser.builder().user(user).groups(group).nickname("nickname")
+            GroupUser hostGroupUser = GroupUser.builder().user(user).groups(group).nickname("host")
                     .phoneNum("01000000000")
                     .groupUserId(GroupUser.GroupUserId.builder().groupId(group.getId()).userId(user.getId()).build())
                     .build();
-            groupUserRepository.save(groupUser);
+            groupUsers.add(hostGroupUser);
+
+            groupUserRepository.save(hostGroupUser);
+
+
             String day = LocalDate.now().getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
             Week week = Week.valueOf(day);
             DayOfWeek.DayOfWeekId dayOfWeekId = new DayOfWeek.DayOfWeekId(alarm.getId(), week);
             DayOfWeek dayOfWeek = new DayOfWeek(dayOfWeekId, alarmRepository.save(alarm));
 
             dayOfWeekRepository.save(dayOfWeek);
+
+            for (int j =0; j< 3; j++){
+
+                User newUser = User.builder()
+                        .role(Role.USER)
+                        .uuid(UUID.randomUUID().toString())
+                        .fcmToken(UUID.randomUUID().toString())
+                        .build();
+                userRepository.save(newUser);
+                GroupUser groupUser = GroupUser.builder().user(newUser).groups(group).nickname("nickname" + j)
+                        .phoneNum("01000000000")
+                        .groupUserId(GroupUser.GroupUserId.builder().groupId(group.getId()).userId(newUser.getId()).build())
+                        .build();
+                groupUsers.add(groupUser);
+                groupUserRepository.save(groupUser);
+            }
         }
+
+        return groupUsers;
     }
 
     @Test
-    public void testMyJob() throws Exception {
+    public void isAlarmRegisteredInSchedule() throws Exception {
         // given
+        clearDB();
+
         JobParameters jobParameters = this.jobLauncherTestUtils.getUniqueJobParameters();
-        int delayMinute = 1;
-        createAlarmRecordsForTest(delayMinute);
+        int delayMinute = 3;
+        createAlarmRecordsForTest(20, delayMinute);
 
 
         // when
@@ -185,9 +230,22 @@ public class BatchJobLaunchTests {
             /**
              * FCM Token 이 Random UUID로 생성되는 유효하지 않은 토큰이므로 JOB이 삭제된다.
              * 삭제 됐으므로 Trigger의 상태는 NONE이다.
+             *
+             * FcmToken 유효할 때 Job State : NORMAL
+             * FcmToken 유효하지 않을 때 Job State : NONE
              */
             Assertions.assertEquals(Trigger.TriggerState.NONE, scheduler.getTriggerState(triggerKey));
         }
     }
 
+    void launchJob() {
+        JobParameters jobParameters = this.jobLauncherTestUtils.getUniqueJobParameters();
+
+        try {
+            JobExecution jobExecution = this.jobLauncherTestUtils.launchJob(jobParameters);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
 }
