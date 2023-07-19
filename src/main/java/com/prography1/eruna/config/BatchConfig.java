@@ -89,10 +89,11 @@ public class BatchConfig{
                 .start(step)
                 .build();
     }
-
+    @Bean
     public ItemWriter<Alarm> writer(Scheduler scheduler){
         return new AlarmsItemWriter(scheduler);
     }
+
     @Bean
     AlarmItemProcessor alarmItemProcessor(AlarmRepository alarmRepository) {
         return new AlarmItemProcessor(alarmRepository);
