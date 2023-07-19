@@ -32,6 +32,7 @@ import org.springframework.batch.test.JobRepositoryTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -62,31 +63,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @SpringBatchTest
-@SpringBootTest(classes = ErunaApplication.class
-//        , properties = "spring.main.allow-bean-definition-overriding=true"
-)
+@SpringBootTest
 @ActiveProfiles("local")
-@EnableAsync
-//@EnableAutoConfiguration
-//@SpringJUnitConfig(TestBatchConfig.class)
-//@Import({
-//        FCMConfig.class})
-//@EnableJpaRepositories("com.prography1.eruna.domain.repository")
-//@DataJpaTest
-//@EnableJpaAuditing
-//@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@AutoConfigureMockMvc
 public class BatchJobLaunchTests {
     @Autowired
     private JobLauncherTestUtils jobLauncherTestUtils;
 
     @Autowired
     private JobRepositoryTestUtils jobRepositoryTestUtils;
-
-    @Autowired
-    private JobLauncher jobLauncher;
-
-    @Autowired
-    private JobRepository jobRepository;
 
     @Autowired
     Scheduler scheduler;
@@ -119,16 +104,15 @@ public class BatchJobLaunchTests {
     @Autowired
     private ThreadPoolTaskExecutor asyncTaskExecutor;
 
+    @Autowired
     MockMvc mvc;
 
     @BeforeEach
     public void setup(@Autowired Job job) {
-        this.jobLauncherTestUtils.setJobRepository(jobRepository);
-        this.jobLauncherTestUtils.setJobLauncher(jobLauncher);
         this.jobLauncherTestUtils.setJob(job); // this is optional if the job is unique
         this.jobRepositoryTestUtils.removeJobExecutions();
 
-        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+//        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
     }
 
     @Test
@@ -152,8 +136,8 @@ public class BatchJobLaunchTests {
 
     }
 
-    @Async
-    void startSchedule(int delayMinute){
+    //    @Async
+    void startSchedule(int delayMinute) {
         try {
             scheduler.start();
             Thread.sleep(delayMinute * 60 * 1000);
@@ -207,7 +191,7 @@ public class BatchJobLaunchTests {
 
             dayOfWeekRepository.save(dayOfWeek);
 
-            for (int j =0; j< 3; j++){
+            for (int j = 0; j < 3; j++) {
 
                 User newUser = User.builder()
                         .role(Role.USER)
@@ -249,20 +233,20 @@ public class BatchJobLaunchTests {
         Assertions.assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
         List<JobKey> keys = scheduler.getJobKeys(GroupMatcher.anyGroup()).stream().toList();
 
-        for (Alarm alarm : alarms){
+        for (Alarm alarm : alarms) {
             Groups group = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
             List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
-            for(GroupUser groupUser : groupUsers){
+            for (GroupUser groupUser : groupUsers) {
                 users.add(groupUser.getUser());
                 Assertions.assertTrue(scheduler.checkExists(JobKey.jobKey(groupUser.getUser().getUuid())));
             }
         }
 
-        List<TriggerKey> triggerKeys = scheduler.getTriggerKeys(GroupMatcher.anyGroup()).stream().toList();
         scheduler.start();
-        Thread.sleep(   delayMinute * 60 * 1000 + 1000);
+        Thread.sleep(2 * delayMinute * 60 * 1000 );
 
-        for(TriggerKey triggerKey : triggerKeys){
+        List<TriggerKey> triggerKeys = scheduler.getTriggerKeys(GroupMatcher.anyGroup()).stream().toList();
+        for (TriggerKey triggerKey : triggerKeys) {
             /**
              * FCM Token 이 Random UUID로 생성되는 유효하지 않은 토큰이므로 JOB이 삭제된다.
              * 삭제 됐으므로 Trigger의 상태는 NONE이다.
@@ -277,6 +261,7 @@ public class BatchJobLaunchTests {
 
     /**
      * 실제 FCM job이 반복 실행되는지 확인하려면 AlarmService 단에서 IsValidFcmToken 검증 코드를 주석처리 해야 한다.
+     *
      * @throws Exception
      */
 
@@ -291,8 +276,8 @@ public class BatchJobLaunchTests {
 
         //when
         launchJob();
-        startSchedule(delayMinute);
-        System.out.println("---------------await----------------");
+//        startSchedule(delayMinute);
+        scheduler.start();
         String url = "/group/wake-up/{groupId}/{uuid}";
         List<Groups> groups = groupRepository.findAll();
         //batch job 후 기상 정보 캐싱 됐는지
@@ -300,28 +285,26 @@ public class BatchJobLaunchTests {
             Assertions.assertTrue(wakeUpCacheRepository.isCachedGroupId(group.getId()));
         }
 
-        try {
-            //그룹 구성원 전체 기상 post
-            for (GroupUser groupUser : groupUsers) {
-                mvc.perform(post(url, groupUser.getGroups().getId(), groupUser.getUser().getUuid()))
-                        .andExpect(status().isOk())
-                ;
-            }
-            // then
-            for (Groups group : groups) {
-                //그룹 구성원 모두 기상 시 캐싱 데이터 지워졌는지
-                Assertions.assertFalse(wakeUpCacheRepository.isCachedGroupId(group.getId()));
-            }
-            for (GroupUser groupUser : groupUsers) {
-                Optional<Wakeup> wakeup = wakeupRepository.findByUser(groupUser.getUser());
-                //기상 정보 db에 잘 저장됐는지
-                Assertions.assertTrue(wakeup.isPresent());
-                Assertions.assertTrue(wakeup.get().getWakeupCheck());
-            }
-//            boolean terminated = asyncTaskExecutor.getThreadPoolExecutor().awaitTermination(delayMinute * 60 + 20 * 60, TimeUnit.SECONDS); //유효한 fcmtoken일때
-            boolean terminated = asyncTaskExecutor.getThreadPoolExecutor().awaitTermination(delayMinute * 60 + 2 * 60, TimeUnit.SECONDS); //유효하지 않은 fcmtoken일때
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        //그룹 구성원 전체 기상 post
+        for (GroupUser groupUser : groupUsers) {
+            mvc.perform(post(url, groupUser.getGroups().getId(), groupUser.getUser().getUuid()))
+                    .andExpect(status().isOk())
+            ;
         }
+        // then
+        for (Groups group : groups) {
+            //그룹 구성원 모두 기상 시 캐싱 데이터 지워졌는지
+            Assertions.assertFalse(wakeUpCacheRepository.isCachedGroupId(group.getId()));
+        }
+        for (GroupUser groupUser : groupUsers) {
+            Optional<Wakeup> wakeup = wakeupRepository.findByUser(groupUser.getUser());
+            //기상 정보 db에 잘 저장됐는지
+            Assertions.assertTrue(wakeup.isPresent());
+            Assertions.assertTrue(wakeup.get().getWakeupCheck());
+        }
+
+        Thread.sleep(delayMinute * 60 + 2 * 60);
+//            boolean terminated = asyncTaskExecutor.getThreadPoolExecutor().awaitTermination(delayMinute * 60 + 20 * 60, TimeUnit.SECONDS); //유효한 fcmtoken일때
+//            boolean terminated = asyncTaskExecutor.getThreadPoolExecutor().awaitTermination(delayMinute * 60 + 2 * 60, TimeUnit.SECONDS); //유효하지 않은 fcmtoken일때
     }
 }
