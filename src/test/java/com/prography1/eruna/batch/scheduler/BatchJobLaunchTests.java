@@ -67,6 +67,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("local")
 @AutoConfigureMockMvc
 public class BatchJobLaunchTests {
+
+    //region field
     @Autowired
     private JobLauncherTestUtils jobLauncherTestUtils;
 
@@ -107,12 +109,13 @@ public class BatchJobLaunchTests {
     @Autowired
     MockMvc mvc;
 
+    @Autowired
+    ObjectMapper objectMapper;
+//endregion
     @BeforeEach
     public void setup(@Autowired Job job) {
         this.jobLauncherTestUtils.setJob(job); // this is optional if the job is unique
         this.jobRepositoryTestUtils.removeJobExecutions();
-
-//        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
     }
 
     @Test
@@ -281,17 +284,30 @@ public class BatchJobLaunchTests {
         String url = "/group/wake-up/{groupId}/{uuid}";
         List<Groups> groups = groupRepository.findAll();
         //batch job 후 기상 정보 캐싱 됐는지
+        Thread.sleep(delayMinute * 60 * 1000 + 30 * 1000);
         for (Groups group : groups) {
             Assertions.assertTrue(wakeUpCacheRepository.isCachedGroupId(group.getId()));
         }
 
         //그룹 구성원 전체 기상 post
         for (GroupUser groupUser : groupUsers) {
-            mvc.perform(post(url, groupUser.getGroups().getId(), groupUser.getUser().getUuid()))
+            MvcResult mvcResult = mvc.perform(post(url, groupUser.getGroups().getId(), groupUser.getUser().getUuid()))
                     .andExpect(status().isOk())
-            ;
+                    .andReturn();
+
+            String response = mvcResult.getResponse().getContentAsString();
+            List<UserResDto.WakeupDto> dtos = toWakeupDtoList(JsonPath.parse(response).read("$.result").toString());
+
+
+            // then
+            for (UserResDto.WakeupDto dto : dtos) {
+                //기상 정보가 유저의 캐싱 데이터에 잘 반영 됐는지
+                if (dto.getUuid().equals(groupUser.getUser().getUuid())) {
+                    Assertions.assertTrue(userRepository.existsByUuid(dto.getUuid()));
+                    Assertions.assertTrue(dto.getWakeup());
+                }
+            }
         }
-        // then
         for (Groups group : groups) {
             //그룹 구성원 모두 기상 시 캐싱 데이터 지워졌는지
             Assertions.assertFalse(wakeUpCacheRepository.isCachedGroupId(group.getId()));
@@ -303,8 +319,9 @@ public class BatchJobLaunchTests {
             Assertions.assertTrue(wakeup.get().getWakeupCheck());
         }
 
-        Thread.sleep(delayMinute * 60 + 2 * 60);
-//            boolean terminated = asyncTaskExecutor.getThreadPoolExecutor().awaitTermination(delayMinute * 60 + 20 * 60, TimeUnit.SECONDS); //유효한 fcmtoken일때
-//            boolean terminated = asyncTaskExecutor.getThreadPoolExecutor().awaitTermination(delayMinute * 60 + 2 * 60, TimeUnit.SECONDS); //유효하지 않은 fcmtoken일때
+    }
+    private List<UserResDto.WakeupDto> toWakeupDtoList(String json) throws JsonProcessingException {
+        return objectMapper.readValue(json, new TypeReference<List<UserResDto.WakeupDto>>() {
+        });
     }
 }

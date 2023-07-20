@@ -182,34 +182,43 @@ public class GroupControllerTests {
         Groups group = groupUsers.get(0).getGroups();
 
         //when
-        startSchedule(delayedMinute);
-        try {
-            //그룹 구성원 전체 기상 post
-            Assertions.assertTrue(wakeUpCacheRepository.isCachedGroupId(group.getId()));
-            for (GroupUser groupUser : groupUsers) {
-                mvc.perform(post(url, groupUser.getGroups().getId(), groupUser.getUser().getUuid()))
-                        .andExpect(status().isOk())
-                ;
-            }
+        scheduler.start();
+        Thread.sleep(delayedMinute * 60 + 60);
+        //그룹 구성원 전체 기상 post
+        Assertions.assertTrue(wakeUpCacheRepository.isCachedGroupId(group.getId()));
+        for (GroupUser groupUser : groupUsers) {
+            MvcResult mvcResult = mvc.perform(post(url, groupUser.getGroups().getId(), groupUser.getUser().getUuid()))
+                    .andExpect(status().isOk())
+                    .andReturn();
 
-            // then
-            //그룹 구성원 모두 기상 시 캐싱 데이터 지워졌는지
-            Assertions.assertFalse(wakeUpCacheRepository.isCachedGroupId(group.getId()));
-            /**
-             * FCM Token이 유효하지 않아 quartz job이 중단되고, db에 저장되지 않는다.
-             */
+            String response = mvcResult.getResponse().getContentAsString();
+            List<UserResDto.WakeupDto> dtos = toWakeupDtoList(JsonPath.parse(response).read("$.result").toString());
+
+//                String body = toJson(dataString.get())
+            for (UserResDto.WakeupDto dto : dtos) {
+                if (dto.getUuid().equals(groupUser.getUser().getUuid())){
+                    Assertions.assertTrue(userRepository.existsByUuid(dto.getUuid()));
+                    Assertions.assertTrue(dto.getWakeup());
+                }
+            }
+        }
+        // then
+
+
+
+        //그룹 구성원 모두 기상 시 캐싱 데이터 지워졌는지
+        Assertions.assertFalse(wakeUpCacheRepository.isCachedGroupId(group.getId()));
+        /**
+         * FCM Token이 유효하지 않아 quartz job이 중단되고, db에 저장되지 않는다.
+         */
 //            for (GroupUser groupUser : groupUsers) {
 //                Optional<Wakeup> wakeup = wakeupRepository.findByUser(groupUser.getUser());
 //                //기상 정보 db에 잘 저장됐는지
 //                Assertions.assertTrue(wakeup.isPresent());
 //                Assertions.assertTrue(wakeup.get().getWakeupCheck());
 //            }
-
+        Thread.sleep(delayedMinute * 60 + 20 * 60);
 //            boolean terminated = asyncTaskExecutor.getThreadPoolExecutor().awaitTermination(delayMinute * 60 + 20 * 60, TimeUnit.SECONDS); //유효한 fcmtoken일때
-            boolean terminated = asyncTaskExecutor.getThreadPoolExecutor().awaitTermination(delayedMinute * 60 + 30, TimeUnit.SECONDS); //유효하지 않은 fcmtoken일때
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Async
@@ -232,7 +241,8 @@ public class GroupControllerTests {
         return objectMapper.writeValueAsString(data);
     }
 
-    private GroupResDto.CreatedGroup toNicknameDto(String json) throws JsonProcessingException {
-        return objectMapper.readValue(json , new TypeReference<GroupResDto.CreatedGroup>(){});
+    private List<UserResDto.WakeupDto> toWakeupDtoList(String json) throws JsonProcessingException {
+        return objectMapper.readValue(json, new TypeReference<List<UserResDto.WakeupDto>>() {
+        });
     }
 }
