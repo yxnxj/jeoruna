@@ -17,6 +17,7 @@ import com.prography1.eruna.service.GroupService;
 import com.prography1.eruna.util.SendFcmJob;
 import com.prography1.eruna.web.GroupReqDto;
 import com.prography1.eruna.web.GroupResDto;
+import com.prography1.eruna.web.UserResDto;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
@@ -92,9 +94,9 @@ public class GroupControllerTests {
 
     @Test
     @Transactional
-    void createGroup() throws Exception{
+    void createGroup() throws Exception {
         //given
-        List<Week> days= new ArrayList<>();
+        List<Week> days = new ArrayList<>();
         String day = LocalDate.now().getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
         Week week = Week.valueOf(day);
         days.add(week);
@@ -113,8 +115,8 @@ public class GroupControllerTests {
         //when
         String url = "/group";
         MvcResult mvcResult = mvc.perform(post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(toJson(createGroup)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(createGroup)))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -130,15 +132,15 @@ public class GroupControllerTests {
 //        return new GroupResDto.CreatedGroup(groupId.longValue(), code);
     }
 
-    String createGroupService(int delayedMinute){
+    String createGroupService(int delayedMinute) {
         //given
-        List<Week> days= new ArrayList<>();
+        List<Week> days = new ArrayList<>();
         String day = LocalDate.now().getDayOfWeek().getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("eng")).toUpperCase(Locale.ROOT);
         Week week = Week.valueOf(day);
         days.add(week);
-        LocalTime localTime = LocalTime.now();
+        LocalTime localTime = LocalTime.now().plusMinutes(delayedMinute);
 
-        GroupReqDto.AlarmInfo alarmInfo = new GroupReqDto.AlarmInfo(AlarmSound.ALARM_SIU.toString(), localTime.getHour(), localTime.getMinute() + delayedMinute, days);
+        GroupReqDto.AlarmInfo alarmInfo = new GroupReqDto.AlarmInfo(AlarmSound.ALARM_SIU.toString(), localTime.getHour(), localTime.getMinute(), days);
 
         User user = User.builder()
                 .role(Role.USER)
@@ -153,10 +155,10 @@ public class GroupControllerTests {
         return createdGroup.getGroupCode();
     }
 
-    List<GroupUser> createGroupUsers(int delayedMinute){
+    List<GroupUser> createGroupUsers(int delayedMinute) {
         int maxGroupUserCount = 4;
         String groupCode = createGroupService(delayedMinute);
-        for (int i = 1; i < maxGroupUserCount; i++){
+        for (int i = 1; i < maxGroupUserCount; i++) {
             User user = User.builder()
                     .role(Role.USER)
                     .uuid(UUID.randomUUID().toString())
@@ -171,19 +173,19 @@ public class GroupControllerTests {
     }
 
 
-
     @Test
-    void allWakeup(){
+    void allWakeup() throws Exception {
         //given
         int delayedMinute = 1;
+        scheduler.start();
+
         List<GroupUser> groupUsers = createGroupUsers(delayedMinute);
         String url = "/group/wake-up/{groupId}/{uuid}";
 
         Groups group = groupUsers.get(0).getGroups();
 
         //when
-        scheduler.start();
-        Thread.sleep(delayedMinute * 60 + 60);
+        Thread.sleep(delayedMinute * 60 * 1000 + 60 * 1000);
         //그룹 구성원 전체 기상 post
         Assertions.assertTrue(wakeUpCacheRepository.isCachedGroupId(group.getId()));
         for (GroupUser groupUser : groupUsers) {
@@ -203,9 +205,6 @@ public class GroupControllerTests {
             }
         }
         // then
-
-
-
         //그룹 구성원 모두 기상 시 캐싱 데이터 지워졌는지
         Assertions.assertFalse(wakeUpCacheRepository.isCachedGroupId(group.getId()));
         /**
@@ -217,20 +216,9 @@ public class GroupControllerTests {
 //                Assertions.assertTrue(wakeup.isPresent());
 //                Assertions.assertTrue(wakeup.get().getWakeupCheck());
 //            }
-        Thread.sleep(delayedMinute * 60 + 20 * 60);
 //            boolean terminated = asyncTaskExecutor.getThreadPoolExecutor().awaitTermination(delayMinute * 60 + 20 * 60, TimeUnit.SECONDS); //유효한 fcmtoken일때
     }
 
-    @Async
-    void startSchedule(int delayMinute){
-        try {
-            scheduler.start();
-            Thread.sleep(delayMinute * 60 * 1000);
-
-        } catch (SchedulerException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @BeforeEach
     public void setup(@Autowired Job job) {

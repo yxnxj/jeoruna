@@ -1,6 +1,10 @@
 package com.prography1.eruna.batch.scheduler;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import com.prography1.eruna.ErunaApplication;
 import com.prography1.eruna.config.FCMConfig;
 import com.prography1.eruna.domain.entity.*;
@@ -47,6 +51,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -128,15 +133,9 @@ public class BatchJobLaunchTests {
         alarmRepository.deleteAll();
     }
 
-    void launchJob() {
+    void launchJob() throws Exception{
         JobParameters jobParameters = this.jobLauncherTestUtils.getUniqueJobParameters();
-
-        try {
-            JobExecution jobExecution = this.jobLauncherTestUtils.launchJob(jobParameters);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
+        JobExecution jobExecution = this.jobLauncherTestUtils.launchJob(jobParameters);
     }
 
     //    @Async
