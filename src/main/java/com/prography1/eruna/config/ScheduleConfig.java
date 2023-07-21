@@ -2,6 +2,7 @@ package com.prography1.eruna.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.quartz.Scheduler;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -19,11 +20,13 @@ import java.util.Date;
 public class ScheduleConfig {
     private final ApplicationContext applicationContext;
     private final JobLauncher jobLauncher;
+    private final Scheduler scheduler;
 
     @Scheduled(cron = "0 0 0 * * *")
 //    @Scheduled(fixedRate = 1000)
     public void launchJob() throws Exception {
         Date date = new Date();
+        scheduler.clear();
 
         JobExecution jobExecution = jobLauncher.run(
                 (Job)applicationContext.getBean("readAlarmsJob")
