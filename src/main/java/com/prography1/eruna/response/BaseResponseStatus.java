@@ -28,6 +28,7 @@ public enum BaseResponseStatus {
     NOT_FOUND_ALARM(false, 2009, "해당 알람 정보를 찾을 수 없습니다."),
     ALREADY_IN_GROUP_USER(false, 2010, "이미 그룹 내에 존재하는 유저입니다."),
     HOST_CANNOT_EXIT(false, 2011, "방장은 방을 나갈 수 없습니다."),
+    FULL_MEMBER(false, 2012, "그룹의 인원이 모두 찼습니다."),
 
 
 

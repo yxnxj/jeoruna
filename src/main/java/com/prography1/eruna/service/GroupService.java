@@ -223,4 +223,12 @@ public class GroupService {
         }
         groupRepository.delete(group);
     }
+
+    public boolean isFullMember(String code) {
+        if(groupMemberCountByCode(code)>3) {
+            return true;
+        }else{
+            return false;
+        }
+    }
 }

@@ -117,6 +117,14 @@ public class GroupController {
         return new BaseResponse<>(new NewGroupCode(newCode));
     }
 
+    @Operation(summary = "그룹 코드 validation", description = "그룹 코드 validation")
+    @GetMapping("/{code}/validation")
+    public BaseResponse<String> checkGroupCode(@PathVariable String code){
+        if(!groupService.isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
+        if(groupService.isFullMember(code)) throw new BaseException(BaseResponseStatus.FULL_MEMBER);
+        return new BaseResponse<>("ok");
+    }
+
 
     @Operation(summary = "그룹 멤버 강퇴", description = "그룹 멤버 강퇴")
     @PatchMapping("/{groupId}/kick/{nickname}")
