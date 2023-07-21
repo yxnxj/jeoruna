@@ -220,7 +220,9 @@ public class BatchJobLaunchTests {
 
         JobParameters jobParameters = this.jobLauncherTestUtils.getUniqueJobParameters();
         int delayMinute = 3;
-        createAlarmRecordsForTest(20, delayMinute);
+        int size = 2500;
+        int groupUserSize = 4;
+        createAlarmRecordsForTest(size, delayMinute);
 
 
         // when
@@ -234,7 +236,7 @@ public class BatchJobLaunchTests {
         List<User> users = new ArrayList<>();
         Assertions.assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
         List<JobKey> keys = scheduler.getJobKeys(GroupMatcher.anyGroup()).stream().toList();
-
+        Assertions.assertEquals(size * groupUserSize, keys.size());
         for (Alarm alarm : alarms) {
             Groups group = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
             List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
