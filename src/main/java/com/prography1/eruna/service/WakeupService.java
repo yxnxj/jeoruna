@@ -52,7 +52,7 @@ public class WakeupService {
 
     public List<Wakeup> saveAll(List<UserResDto.WakeupDto> list, Long groupId) {
         List<Wakeup> wakeupList = new ArrayList<>();
-
+        log.info("Group " + groupId +  " ALL WAKEUP!!");
         for(UserResDto.WakeupDto wakeupDto : list){
             wakeupList.add(save(wakeupDto, groupId));
             try {

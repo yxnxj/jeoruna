@@ -149,15 +149,6 @@ public class BatchJobLaunchTests {
         }
     }
 
-    /**
-     * size는 itemwriter에서 정의한 chunk보다 작아야 한다.
-     * scheduler에 chunk로 정의한 수 (현재 100)의 데이터만큼 나누어 scheduler에 alarm job이 등록되기 때문에 테스트가 정확히 안 이뤄질 수 있다.
-     *
-     * @param size
-     * @param delayMinute
-     * @return
-     */
-    @Test
     public List<GroupUser> createAlarmRecordsForTest(int size, int delayMinute) {
         List<GroupUser> groupUsers = new ArrayList<>();
         for (int i = 0; i < size; i++) {
@@ -273,19 +264,21 @@ public class BatchJobLaunchTests {
     void wakeUpRequestTest() throws Exception {
 
         //given
-        int delayMinute = 1;
-        int size = 3;
+        int delayMinute = 6;
+        int size = 2500;
         clearDB();
         List<GroupUser> groupUsers = createAlarmRecordsForTest(size, delayMinute);
 
         //when
-        launchJob();
+       launchJob();
 //        startSchedule(delayMinute);
         scheduler.start();
+        Thread.sleep(delayMinute * 60 * 1000 + delayMinute * 30 * 1000);
+
         String url = "/group/wake-up/{groupId}/{uuid}";
         List<Groups> groups = groupRepository.findAll();
-        //batch job 후 기상 정보 캐싱 됐는지
-        Thread.sleep(delayMinute * 60 * 1000 + 30 * 1000);
+
+        //quartz job 후 기상 정보 캐싱 됐는지
         for (Groups group : groups) {
             Assertions.assertTrue(wakeUpCacheRepository.isCachedGroupId(group.getId()));
         }

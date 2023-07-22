@@ -4,7 +4,6 @@ import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
-import com.prography1.eruna.util.JobCompletionNotificationListener;
 import com.prography1.eruna.util.SendFcmJob;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;

@@ -4,9 +4,10 @@ import com.prography1.eruna.domain.entity.Alarm;
 import com.prography1.eruna.domain.entity.DayOfWeek;
 import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.AlarmRepository;
+import com.prography1.eruna.domain.repository.GroupRepository;
+import com.prography1.eruna.service.AlarmService;
 import com.prography1.eruna.util.AlarmItemProcessor;
 import com.prography1.eruna.util.AlarmsItemWriter;
-import com.prography1.eruna.util.JobCompletionNotificationListener;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceContext;
@@ -78,16 +79,15 @@ public class TestBatchConfig {
     }
 
     @Bean
-    public Job readAlarmsJob(JobRepository jobRepository, JobCompletionNotificationListener listener, @Qualifier("readAlarmsStep") Step step) {
+    public Job readAlarmsJob(JobRepository jobRepository,  @Qualifier("readAlarmsStep") Step step) {
         return new JobBuilder("readAlarmsJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
-                .listener(listener)
                 .start(step)
                 .build();
     }
 
-    public ItemWriter<Alarm> writer(Scheduler scheduler) {
-        return new AlarmsItemWriter(scheduler);
+    public ItemWriter<Alarm> writer(GroupRepository groupRepository, AlarmService alarmService) {
+        return new AlarmsItemWriter(groupRepository, alarmService);
     }
 
     @Bean
@@ -96,12 +96,12 @@ public class TestBatchConfig {
     }
 
     @Bean
-    public Step readAlarmsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, AlarmRepository alarmRepository, Scheduler scheduler) {
+    public Step readAlarmsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, GroupRepository groupRepository, AlarmService alarmService) {
         return new StepBuilder("step", jobRepository)
                 .<DayOfWeek, Alarm>chunk(10, transactionManager)
 //                .reader(reader(alarmRepository))
                 .reader(jpaPagingItemReader())
-                .writer(writer(scheduler))
+                .writer(writer(groupRepository, alarmService))
 //                .processor(alarmItemProcessor(alarmRepository))
                 .allowStartIfComplete(true)
                 .build();
