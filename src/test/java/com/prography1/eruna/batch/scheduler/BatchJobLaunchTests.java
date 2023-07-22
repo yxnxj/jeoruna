@@ -118,9 +118,10 @@ public class BatchJobLaunchTests {
     ObjectMapper objectMapper;
 //endregion
     @BeforeEach
-    public void setup(@Autowired Job job) {
+    public void setup(@Autowired Job job) throws SchedulerException {
         this.jobLauncherTestUtils.setJob(job); // this is optional if the job is unique
         this.jobRepositoryTestUtils.removeJobExecutions();
+        scheduler.clear();
     }
 
     @Test
@@ -264,16 +265,17 @@ public class BatchJobLaunchTests {
     void wakeUpRequestTest() throws Exception {
 
         //given
-        int delayMinute = 6;
+        int delayMinute = 3;
         int size = 2500;
+
         clearDB();
         List<GroupUser> groupUsers = createAlarmRecordsForTest(size, delayMinute);
 
         //when
        launchJob();
 //        startSchedule(delayMinute);
-        scheduler.start();
-        Thread.sleep(delayMinute * 60 * 1000 + delayMinute * 30 * 1000);
+//        scheduler.start();
+        Thread.sleep(2 * delayMinute * 60 * 1000);
 
         String url = "/group/wake-up/{groupId}/{uuid}";
         List<Groups> groups = groupRepository.findAll();

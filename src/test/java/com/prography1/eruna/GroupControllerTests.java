@@ -221,8 +221,9 @@ public class GroupControllerTests {
 
 
     @BeforeEach
-    public void setup(@Autowired Job job) {
+    public void setup(@Autowired Job job) throws SchedulerException {
         mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        scheduler.clear();
     }
 
     private <T> String toJson(T data) throws JsonProcessingException {
