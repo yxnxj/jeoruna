@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,7 +31,7 @@ public class Wakeup{
 
     private Boolean wakeupCheck;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime wakeupTime;
+    @Temporal(TemporalType.TIME)
+    private LocalTime wakeupTime;
 
 }

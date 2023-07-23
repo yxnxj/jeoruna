@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,6 +84,7 @@ public class WakeUpCacheRepository {
                 .nickname(nickname)
                 .phoneNum(phoneNum)
                 .wakeup(true)
+                .wakeupDate(LocalDate.now().toString())
                 .wakeupTime(LocalTime.now().toString())
                 .build();
 
