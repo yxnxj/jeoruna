@@ -42,7 +42,8 @@ public enum BaseResponseStatus {
      */
     DATABASE_ERROR(false, 4000, "데이터베이스 연결에 실패하였습니다."),
 
-    SCHEDULER_ERROR(false, 4001, "스케줄러 오류가 발생했습니다.")
+    SCHEDULER_ERROR(false, 4001, "스케줄러 오류가 발생했습니다."),
+    SSE_EMITTER_NOT_FOUND(false, 4002, "해당 GROUP_ID에 대한 SSE 연결을 찾을 수 없습니다.")
     ;
 
     private final boolean isSuccess;

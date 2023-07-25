@@ -30,7 +30,8 @@ public class SseEmitters {
     private final WakeupService wakeupService;
     private final GroupUserRepository groupUserRepository;
     private final GroupRepository groupRepository;
-    public SseEmitter add(Long groupId ,SseEmitter emitter) {
+    public SseEmitter add(Long groupId) {
+        SseEmitter emitter = new SseEmitter(60 * 1000L);
 //        this.emitters.add(emitter);
         this.emitters.put(groupId, emitter);
         log.info("new emitter added: {}", emitter);
@@ -49,7 +50,10 @@ public class SseEmitters {
 
     public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId){
         List<UserResDto.WakeupDto> list = wakeUpCacheRepository.findWakeupInfo(groupId);
-
+        SseEmitter sseEmitter = emitters.get(groupId);
+        if(sseEmitter == null){
+            throw new BaseException(BaseResponseStatus.SSE_EMITTER_NOT_FOUND);
+        }
         /**
          * 캐싱된 데이터가 없으면 DB에서 캐싱과 동시에 그룹 유저들을 찾아 리스트를 반환한다.
          */
@@ -70,6 +74,11 @@ public class SseEmitters {
             event = SseEmitter.event()
                     .name("allWakeUp")
                     .data(list);
+        }
+        try {
+            sseEmitter.send(event);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         list.sort(Comparator.comparing(UserResDto.WakeupDto::getWakeupTime));
         return list;

@@ -76,6 +76,12 @@ public class GroupController {
         return new BaseResponse<>(e.getStatus());
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public BaseResponse<String> handleRuntimeException(RuntimeException e) {
+        log.info(e.getMessage());
+        return new BaseResponse<>(e.getMessage());
+    }
+
     @Operation(summary = "닉네임 중복 확인", description = "참여하려는 그룹에 중복된 닉네임이 있는지 확인한다.",
             responses =
             @ApiResponse(responseCode = "200", description = "닉네임 유효 확인",
@@ -201,8 +207,7 @@ public class GroupController {
     })))
     @PostMapping("/wake-up/{groupId}/{uuid}")
     public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @PathVariable String uuid){
-//        SseEmitter emitter = new SseEmitter(60*1000L);
-//        sseEmitters.add(groupId, emitter);
+        sseEmitters.add(groupId);
         groupService.updateWakeupInfo(groupId, uuid);
         return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId));
     }
