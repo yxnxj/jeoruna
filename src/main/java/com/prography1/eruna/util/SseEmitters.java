@@ -53,18 +53,12 @@ public class SseEmitters {
         /**
          * 캐싱된 데이터가 없으면 DB에서 캐싱과 동시에 그룹 유저들을 찾아 리스트를 반환한다.
          */
+
         if(list.isEmpty()){
             Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
             List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
-
-            for(GroupUser groupUser : groupUsers){
-                UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(groupUser.getUser(), groupUser.getNickname(), groupUser.getPhoneNum());
-                wakeUpCacheRepository.addSleepUser(groupId, wakeupDto);
-                list.add(wakeupDto);
-            }
-            return list;
+            list = wakeUpCacheRepository.createGroupUsersCache(list, groupId, groupUsers);
         }
-
         SseEmitter.SseEventBuilder event = SseEmitter.event()
                 .name("wakeupInfo")
                 .data(list);

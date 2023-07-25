@@ -1,7 +1,11 @@
 package com.prography1.eruna.domain.repository;
 
+import com.prography1.eruna.domain.entity.GroupUser;
+import com.prography1.eruna.domain.entity.Groups;
 import com.prography1.eruna.domain.entity.User;
 import com.prography1.eruna.domain.entity.Wakeup;
+import com.prography1.eruna.response.BaseException;
+import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.util.RedisGenKey;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
@@ -116,4 +120,13 @@ public class WakeUpCacheRepository {
         return false;
     }
 
+    public List<UserResDto.WakeupDto> createGroupUsersCache(List<UserResDto.WakeupDto> list, Long groupId, List<GroupUser> groupUsers ){
+
+        for(GroupUser groupUser : groupUsers){
+            UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(groupUser.getUser(), groupUser.getNickname(), groupUser.getPhoneNum());
+            addSleepUser(groupId, wakeupDto);
+            list.add(wakeupDto);
+        }
+        return list;
+    }
 }
