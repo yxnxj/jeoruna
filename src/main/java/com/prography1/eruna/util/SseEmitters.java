@@ -2,7 +2,6 @@ package com.prography1.eruna.util;
 
 import com.prography1.eruna.domain.entity.GroupUser;
 import com.prography1.eruna.domain.entity.Groups;
-import com.prography1.eruna.domain.entity.Wakeup;
 import com.prography1.eruna.domain.repository.GroupRepository;
 import com.prography1.eruna.domain.repository.GroupUserRepository;
 import com.prography1.eruna.domain.repository.WakeUpCacheRepository;
@@ -49,7 +48,7 @@ public class SseEmitters {
     }
 
     public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId){
-        List<UserResDto.WakeupDto> list = wakeUpCacheRepository.findWakeupInfo(groupId);
+        List<UserResDto.WakeupDto> list = wakeUpCacheRepository.getWakeupDtoList(groupId);
         SseEmitter sseEmitter = emitters.get(groupId);
         if(sseEmitter == null){
             throw new BaseException(BaseResponseStatus.SSE_EMITTER_NOT_FOUND);
@@ -68,13 +67,7 @@ public class SseEmitters {
                 .data(list);
 
 
-        if(wakeUpCacheRepository.isAllWakeup(list)) {
-            wakeupService.saveAll(list, groupId);
-            wakeUpCacheRepository.deleteCachedGroup(groupId);
-            event = SseEmitter.event()
-                    .name("allWakeUp")
-                    .data(list);
-        }
+
         try {
             sseEmitter.send(event);
         } catch (IOException e) {

@@ -6,6 +6,7 @@ import com.prography1.eruna.response.BaseResponse;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.GroupService;
 import com.prography1.eruna.service.UserService;
+import com.prography1.eruna.service.WakeupService;
 import com.prography1.eruna.util.SseEmitters;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -33,6 +34,7 @@ public class GroupController {
 
     private final GroupService groupService;
     private final UserService userService;
+    private final WakeupService wakeupService;
     private final SseEmitters sseEmitters;
     @Operation(summary = "그룹 만들기", description = "알람 그룹 만들기")
     @PostMapping("")
@@ -208,7 +210,7 @@ public class GroupController {
     @PostMapping("/wake-up/{groupId}/{uuid}")
     public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @PathVariable String uuid){
         sseEmitters.add(groupId);
-        groupService.updateWakeupInfo(groupId, uuid);
+        wakeupService.updateWakeupInfo(groupId, uuid);
         return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId));
     }
 }
