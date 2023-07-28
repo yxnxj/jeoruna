@@ -26,12 +26,17 @@ public class Wakeup{
     @JoinColumn(name="user_id")
     private User user;
 
-    @Temporal(TemporalType.DATE)
-    private LocalDate date;
-
     private Boolean wakeupCheck;
+
+    @Temporal(TemporalType.DATE)
+    private LocalDate wakeupDate;
 
     @Temporal(TemporalType.TIME)
     private LocalTime wakeupTime;
+
+    public void userWakeup(LocalTime wakeupTime){
+        this.wakeupTime = wakeupTime;
+        this.wakeupCheck = true;
+    }
 
 }

@@ -102,7 +102,6 @@ public class WakeUpCacheRepository {
                 .nickname(nickname)
                 .phoneNum(phoneNum)
                 .wakeup(true)
-                .wakeupDate(LocalDate.now().toString())
                 .wakeupTime(LocalTime.now().toString())
                 .build();
         if (isPresent(key))

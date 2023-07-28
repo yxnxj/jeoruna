@@ -42,11 +42,10 @@ public class WakeupService {
         Wakeup wakeup = Wakeup.builder()
                 .alarm(alarm)
                 .wakeupCheck(true)
-                .date(LocalDate.parse(wakeupDto.getWakeupDate()))
+                .wakeupDate(LocalDate.now())
                 .wakeupTime(LocalTime.parse(wakeupDto.getWakeupTime()))
                 .user(user)
                 .build();
-
         return wakeupRepository.save(wakeup);
     }
 
