@@ -101,6 +101,9 @@ public class WakeUpCacheRepository {
     }
 
     public boolean isAllWakeup(List<UserResDto.WakeupDto> list){
+        if (list.size() == 0)
+            return false;
+
         for(UserResDto.WakeupDto wakeupDto : list){
             if (!wakeupDto.getWakeup()) {
                 return false;
