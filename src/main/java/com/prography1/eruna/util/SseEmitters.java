@@ -30,11 +30,23 @@ public class SseEmitters {
     private final GroupUserRepository groupUserRepository;
     private final GroupRepository groupRepository;
     public SseEmitter add(Long groupId) {
-        SseEmitter emitter = new SseEmitter(60 * 1000L);
-//        this.emitters.add(emitter);
+        SseEmitter emitter = new SseEmitter();
+////        this.emitters.add(emitter);
+        if (emitters.containsKey(groupId)) {
+            return emitters.get(groupId);
+        }
         this.emitters.put(groupId, emitter);
         log.info("new emitter added: {}", emitter);
         log.info("emitter list size: {}", emitters.size());
+        emitter.onError((c) -> {
+                    log.info("onError Callback");
+                    log.error(c.getMessage());
+                    log.error(c.getCause().getMessage());
+                    emitter.completeWithError(new Throwable(c.getCause()));
+
+            }
+
+        );
         emitter.onCompletion(() -> {
             log.info("onCompletion callback");
             this.emitters.remove(groupId);    // 만료되면 맵에서 삭제
