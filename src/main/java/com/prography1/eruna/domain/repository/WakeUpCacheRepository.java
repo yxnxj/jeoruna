@@ -83,6 +83,15 @@ public class WakeUpCacheRepository {
 //            list.set(index, wakeupDto);
             return list;
         }
+        list = pushWakeupDtoInExistKey(key, wakeupDto);
+        return list;
+    }
+
+    private List<UserResDto.WakeupDto> pushWakeupDtoInExistKey(String key, UserResDto.WakeupDto wakeupDto){
+        List<UserResDto.WakeupDto> list = getWakeupDtoList(key);
+
+        redisTemplate.opsForList().rightPush(key, wakeupDto);
+        list.add(wakeupDto);
         return list;
     }
 
