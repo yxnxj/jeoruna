@@ -91,14 +91,16 @@ public class SseEmitters {
             list = wakeUpCacheRepository.createGroupUsersCache(list, groupId, groupUsers);
         }
 
-        Set<ResponseBodyEmitter.DataWithMediaType> event = SseEmitter.event()
-                .name("wakeupInfo")
-                .data(list.toArray())
-                .build();
+//        Set<ResponseBodyEmitter.DataWithMediaType> event = SseEmitter.event()
+//                .name("wakeupInfo")
+//                .data(list.toArray())
+//                .build();
 
 
         try {
-            sseEmitter.send(event);
+            sseEmitter.send(SseEmitter.event()
+                    .name("wakeupInfo")
+                    .data(list.toArray()));
             log.info("SSE SEND!! : " + groupId);
 
         } catch (IOException e) {
