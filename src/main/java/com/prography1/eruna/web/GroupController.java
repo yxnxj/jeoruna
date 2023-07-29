@@ -198,10 +198,11 @@ public class GroupController {
 
     @CrossOrigin
     @GetMapping(value = "/sse/{groupId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter> connect(@PathVariable Long groupId) {
+    public ResponseEntity<SseEmitter> connect(HttpServletResponse response, @PathVariable Long groupId) {
         SseEmitter emitter = sseEmitters.add(groupId);
+        response.addHeader("X-Accel-Buffering", "no");
         sseEmitters.sendWakeupInfo(groupId);
-        return ResponseEntity.ok(emitter);
+        return new ResponseEntity<>(emitter, HttpStatus.OK);
     }
 
 
