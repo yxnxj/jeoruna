@@ -12,12 +12,14 @@ import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -30,7 +32,7 @@ public class SseEmitters {
     private final GroupUserRepository groupUserRepository;
     private final GroupRepository groupRepository;
     public SseEmitter add(Long groupId) {
-        SseEmitter emitter = new SseEmitter();
+        SseEmitter emitter = new SseEmitter(30 * 60L * 1000);
 ////        this.emitters.add(emitter);
         if (emitters.containsKey(groupId)) {
             return emitters.get(groupId);
@@ -55,11 +57,25 @@ public class SseEmitters {
             log.info("onTimeout callback");
             emitter.complete();
         });
-
         return emitter;
     }
 
-    public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId){
+    public List<UserResDto.WakeupDto> findWakeupInfo(Long groupId){
+        List<UserResDto.WakeupDto> list = wakeUpCacheRepository.getWakeupDtoList(groupId);
+        /**
+        * 캐싱된 데이터가 없으면 DB에서 캐싱과 동시에 그룹 유저들을 찾아 리스트를 반환한다.
+        */
+
+        if(list.isEmpty()){
+            Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
+            List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
+            list = wakeUpCacheRepository.createGroupUsersCache(list, groupId, groupUsers);
+        }
+        list.sort(Comparator.comparing(UserResDto.WakeupDto::getWakeupTime));
+        return list;
+    }
+
+    public void sendWakeupInfo(Long groupId){
         List<UserResDto.WakeupDto> list = wakeUpCacheRepository.getWakeupDtoList(groupId);
         SseEmitter sseEmitter = emitters.get(groupId);
         if(sseEmitter == null){
@@ -74,19 +90,22 @@ public class SseEmitters {
             List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
             list = wakeUpCacheRepository.createGroupUsersCache(list, groupId, groupUsers);
         }
-        SseEmitter.SseEventBuilder event = SseEmitter.event()
-                .name("wakeupInfo")
-                .data(list);
 
+        Set<ResponseBodyEmitter.DataWithMediaType> event = SseEmitter.event()
+                .name("wakeupInfo")
+                .data(list.toArray())
+                .build();
 
 
         try {
             sseEmitter.send(event);
+            log.info("SSE SEND!! : " + groupId);
+
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("SSE ERROR : " + e.getMessage());
+            sseEmitter.completeWithError(e.getCause());
         }
-        list.sort(Comparator.comparing(UserResDto.WakeupDto::getWakeupTime));
-        return list;
+
     }
 
 //regionSSE emitter send

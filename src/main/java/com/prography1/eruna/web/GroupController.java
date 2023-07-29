@@ -15,8 +15,11 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +27,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.prography1.eruna.web.GroupReqDto.*;
 import static com.prography1.eruna.web.GroupResDto.*;
@@ -184,27 +189,17 @@ public class GroupController {
                                 "phoneNum" : "01000000000"
                             }"]""")
             })))
-    @GetMapping(value = "/wake-up/{groupId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value = "/wake-up/{groupId}")
     public BaseResponse<List<UserResDto.WakeupDto>> sendWakeupInfo(@PathVariable Long groupId){
 //      sseEmitters.add(groupId);
-      return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId));
-//        return ResponseEntity.ok(emitter);
+      sseEmitters.sendWakeupInfo(groupId);
+      return new BaseResponse<>(sseEmitters.findWakeupInfo(groupId));
     }
 
+    @CrossOrigin
     @GetMapping(value = "/sse/{groupId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public ResponseEntity<SseEmitter> connect(@PathVariable Long groupId) {
         SseEmitter emitter = sseEmitters.add(groupId);
-
-//        SseEmitter.SseEventBuilder event = SseEmitter.event()
-//                .name("wakeupInfo")
-//                .data("text");
-//
-//
-//        try {
-//            emitter.send(event);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
         sseEmitters.sendWakeupInfo(groupId);
         return ResponseEntity.ok(emitter);
     }
@@ -238,6 +233,7 @@ public class GroupController {
     @PostMapping("/wake-up/{groupId}/{uuid}")
     public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @PathVariable String uuid){
         wakeupService.updateWakeupInfo(groupId, uuid);
-        return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId));
+        sseEmitters.sendWakeupInfo(groupId);
+        return new BaseResponse<>(sseEmitters.findWakeupInfo(groupId));
     }
 }
