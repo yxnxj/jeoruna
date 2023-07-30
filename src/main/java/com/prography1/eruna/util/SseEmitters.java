@@ -42,13 +42,7 @@ public class SseEmitters {
         this.emitters.put(key, emitter);
         log.info("new emitter added: {}", emitter);
         log.info("emitter list size: {}", emitters.size());
-        emitter.onError((c) -> {
-                    log.info("onError Callback");
-                    log.error(c.getMessage());
-                    log.error(c.getCause().getMessage());
-                    emitter.completeWithError(new Throwable(c.getCause()));
-            }
-        );
+
         emitter.onCompletion(() -> {
             log.info("onCompletion callback");
             this.emitters.remove(key);    // 만료되면 맵에서 삭제
@@ -59,6 +53,8 @@ public class SseEmitters {
         });
         emitter.onError((c) -> {
             log.error("Error occurred");
+            log.error(c.getMessage());
+            log.error(c.getCause().getMessage());
             emitter.completeWithError(c.getCause());
         });
         return emitter;
