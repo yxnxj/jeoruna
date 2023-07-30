@@ -26,18 +26,20 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @RequiredArgsConstructor
 public class SseEmitters {
-    private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
     private final WakeUpCacheRepository wakeUpCacheRepository;
     private final WakeupService wakeupService;
     private final GroupUserRepository groupUserRepository;
     private final GroupRepository groupRepository;
-    public SseEmitter add(Long groupId) {
+    public SseEmitter add(Long groupId, String uuid) {
         SseEmitter emitter = new SseEmitter(30 * 60L * 1000);
+        String key = generateKey(groupId, uuid);
+
 ////        this.emitters.add(emitter);
-        if (emitters.containsKey(groupId)) {
-            return emitters.get(groupId);
+        if (emitters.containsKey(key)) {
+            return emitters.get(key);
         }
-        this.emitters.put(groupId, emitter);
+        this.emitters.put(key, emitter);
         log.info("new emitter added: {}", emitter);
         log.info("emitter list size: {}", emitters.size());
         emitter.onError((c) -> {
@@ -51,11 +53,15 @@ public class SseEmitters {
         );
         emitter.onCompletion(() -> {
             log.info("onCompletion callback");
-            this.emitters.remove(groupId);    // 만료되면 맵에서 삭제
+            this.emitters.remove(key);    // 만료되면 맵에서 삭제
         });
         emitter.onTimeout(() -> {
             log.info("onTimeout callback");
             emitter.complete();
+        });
+        emitter.onError((c) -> {
+            log.error("Error occurred");
+            emitter.completeWithError(c.getCause());
         });
         return emitter;
     }
@@ -75,9 +81,10 @@ public class SseEmitters {
         return list;
     }
 
-    public void sendWakeupInfo(Long groupId){
+    public void sendWakeupInfo(Long groupId, String uuid){
         List<UserResDto.WakeupDto> list = wakeUpCacheRepository.getWakeupDtoList(groupId);
-        SseEmitter sseEmitter = emitters.get(groupId);
+        String key = generateKey(groupId, uuid);
+        SseEmitter sseEmitter = emitters.get(key);
         if(sseEmitter == null){
             throw new BaseException(BaseResponseStatus.SSE_EMITTER_NOT_FOUND);
         }
@@ -91,11 +98,6 @@ public class SseEmitters {
             list = wakeUpCacheRepository.createGroupUsersCache(list, groupId, groupUsers);
         }
 
-//        Set<ResponseBodyEmitter.DataWithMediaType> event = SseEmitter.event()
-//                .name("wakeupInfo")
-//                .data(list.toArray())
-//                .build();
-
 
         try {
             sseEmitter.send(SseEmitter.event()
@@ -108,6 +110,10 @@ public class SseEmitters {
             sseEmitter.completeWithError(e.getCause());
         }
 
+    }
+
+    private String generateKey(Long groupId, String uuid){
+        return "SSE."+groupId + "." + uuid;
     }
 
 //regionSSE emitter send

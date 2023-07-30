@@ -189,19 +189,19 @@ public class GroupController {
                                 "phoneNum" : "01000000000"
                             }"]""")
             })))
-    @GetMapping(value = "/wake-up/{groupId}")
-    public BaseResponse<List<UserResDto.WakeupDto>> sendWakeupInfo(@PathVariable Long groupId){
+    @GetMapping(value = "/wake-up/{groupId}/{uuid}")
+    public BaseResponse<List<UserResDto.WakeupDto>> sendWakeupInfo(@PathVariable Long groupId, @PathVariable String uuid){
 //      sseEmitters.add(groupId);
-      sseEmitters.sendWakeupInfo(groupId);
+      sseEmitters.sendWakeupInfo(groupId, uuid);
       return new BaseResponse<>(sseEmitters.findWakeupInfo(groupId));
     }
 
     @CrossOrigin
-    @GetMapping(value = "/sse/{groupId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter> connect(HttpServletResponse response, @PathVariable Long groupId) {
-        SseEmitter emitter = sseEmitters.add(groupId);
+    @GetMapping(value = "/sse/{groupId}/{uuid}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public ResponseEntity<SseEmitter> connect(HttpServletResponse response, @PathVariable Long groupId, @PathVariable String uuid) {
+        SseEmitter emitter = sseEmitters.add(groupId, uuid);
         response.addHeader("X-Accel-Buffering", "no");
-        sseEmitters.sendWakeupInfo(groupId);
+        sseEmitters.sendWakeupInfo(groupId, uuid);
         return new ResponseEntity<>(emitter, HttpStatus.OK);
     }
 
@@ -234,7 +234,7 @@ public class GroupController {
     @PostMapping("/wake-up/{groupId}/{uuid}")
     public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @PathVariable String uuid){
         wakeupService.updateWakeupInfo(groupId, uuid);
-        sseEmitters.sendWakeupInfo(groupId);
+        sseEmitters.sendWakeupInfo(groupId, uuid);
         return new BaseResponse<>(sseEmitters.findWakeupInfo(groupId));
     }
 }
