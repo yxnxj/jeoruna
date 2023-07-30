@@ -47,9 +47,7 @@ public class SseEmitters {
                     log.error(c.getMessage());
                     log.error(c.getCause().getMessage());
                     emitter.completeWithError(new Throwable(c.getCause()));
-
             }
-
         );
         emitter.onCompletion(() -> {
             log.info("onCompletion callback");
@@ -85,9 +83,10 @@ public class SseEmitters {
         List<UserResDto.WakeupDto> list = wakeUpCacheRepository.getWakeupDtoList(groupId);
         String key = generateKey(groupId, uuid);
         SseEmitter sseEmitter = emitters.get(key);
-        if(sseEmitter == null){
-            throw new BaseException(BaseResponseStatus.SSE_EMITTER_NOT_FOUND);
-        }
+//        if(sseEmitter == null){
+//            sseEmitter = new SseEmitter(30 * 60L * 1000);
+//            emitters.put(key, sseEmitter);
+//        }
         /**
          * 캐싱된 데이터가 없으면 DB에서 캐싱과 동시에 그룹 유저들을 찾아 리스트를 반환한다.
          */

@@ -79,7 +79,7 @@ public class WakeupService {
         if(wakeUpCacheRepository.isAllWakeup(groupId)) {
             List<UserResDto.WakeupDto> list = wakeUpCacheRepository.getWakeupDtoList(groupId);
             saveAll(list, groupId);
-            wakeUpCacheRepository.deleteCachedGroup(groupId);
+//            wakeUpCacheRepository.deleteCachedGroup(groupId);
         }
     }
 }

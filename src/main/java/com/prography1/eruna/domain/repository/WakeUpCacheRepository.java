@@ -25,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 public class WakeUpCacheRepository {
     private final RedisTemplate<String, UserResDto.WakeupDto> redisTemplate;
 
+    private final Long CACHE_EXPIRE_MINUTES = 20L;
+
     public void addSleepUser(Long groupId, UserResDto.WakeupDto wakeupDto){
         String key = RedisGenKey.generateGroupKey(groupId);
 
@@ -36,7 +38,7 @@ public class WakeUpCacheRepository {
         }
 
         redisTemplate.opsForList().rightPush(key, wakeupDto);
-        redisTemplate.expire(key, 60, TimeUnit.MINUTES);
+        redisTemplate.expire(key, CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
     }
 
     public List<UserResDto.WakeupDto> createGroupUsersCache(List<UserResDto.WakeupDto> list, Long groupId, List<GroupUser> groupUsers ){
@@ -74,7 +76,7 @@ public class WakeUpCacheRepository {
         List<UserResDto.WakeupDto> list = getWakeupDtoList(key);
         
 
-        redisTemplate.expire(key, 60, TimeUnit.MINUTES);
+        redisTemplate.expire(key, CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
 
         int index = indexOfWakeDto(list, wakeupDto, size);
         if(index > -1){
