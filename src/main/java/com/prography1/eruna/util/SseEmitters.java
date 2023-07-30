@@ -111,45 +111,32 @@ public class SseEmitters {
 
     }
 
-    private String generateKey(Long groupId, String uuid){
-        return "SSE."+groupId + "." + uuid;
+    public void sendWakeupInfo2All(Long groupId){
+        List<UserResDto.WakeupDto> wakeupDtoList = wakeUpCacheRepository.getWakeupDtoList(groupId);
+
+        for(UserResDto.WakeupDto wakeupDto : wakeupDtoList){
+            String uuid = wakeupDto.getUuid();
+
+            String key = generateKey(groupId, uuid);
+            SseEmitter sseEmitter = emitters.get(key);
+            /**
+             * 아직 기상 하지 않은 유저는 SSE 연결이 되어 있지 않음
+             */
+            if(sseEmitter == null) continue;
+            try {
+                sseEmitter.send(SseEmitter.event()
+                        .name("wakeupInfo")
+                        .data(wakeupDtoList.toArray()));
+                log.info("SSE SEND!! : " + groupId);
+
+            } catch (IOException e) {
+                log.error("SSE ERROR : " + e.getMessage());
+                sseEmitter.completeWithError(e.getCause());
+            }
+        }
     }
 
-//regionSSE emitter send
-
-    /**
-     * demo 데이에서 제외하고 구현하도록 임시 주석처리
-     * @param groupId
-     * @return
-     */
-//    public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId){
-//        SseEmitter emitter = emitters.get(groupId);
-//        return sendWakeupInfo(groupId, emitter);
-//    }
-    
-//    public List<UserResDto.WakeupDto> sendWakeupInfo(Long groupId, SseEmitter sseEmitter){
-//        List<UserResDto.WakeupDto> list = wakeUpCacheRepository.findWakeupInfo(groupId);
-//        SseEmitter.SseEventBuilder event = SseEmitter.event()
-//                .name("wakeupInfo")
-//                .data(list);
-//
-//        if(wakeUpCacheRepository.isAllWakeup(list)) {
-//            wakeupService.saveAll(list, groupId);
-//            event = SseEmitter.event()
-//                    .name("allWakeUp")
-//                    .data(list);
-//        }
-//
-//        try {
-//            sseEmitter.send(event);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//        return list;
-//    }
-//endregion
-
-
-
+    private String generateKey(Long groupId, String uuid){
+        return "SSE." + groupId + "." + uuid;
+    }
 }

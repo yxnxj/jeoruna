@@ -234,7 +234,7 @@ public class GroupController {
     @PostMapping("/wake-up/{groupId}/{uuid}")
     public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @PathVariable String uuid){
         wakeupService.updateWakeupInfo(groupId, uuid);
-        sseEmitters.sendWakeupInfo(groupId, uuid);
+        sseEmitters.sendWakeupInfo2All(groupId);
         return new BaseResponse<>(sseEmitters.findWakeupInfo(groupId));
     }
 }
