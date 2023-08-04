@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Component
 @Slf4j
@@ -52,9 +54,6 @@ public class SseEmitters {
             emitter.complete();
         });
         emitter.onError((c) -> {
-            log.error("Error occurred");
-            log.error(c.getMessage());
-            log.error(c.getCause().getMessage());
             emitter.completeWithError(c.getCause());
         });
         return emitter;
@@ -78,7 +77,7 @@ public class SseEmitters {
     public void sendWakeupInfo(Long groupId, String uuid){
         List<UserResDto.WakeupDto> list = wakeUpCacheRepository.getWakeupDtoList(groupId);
         String key = generateKey(groupId, uuid);
-        SseEmitter sseEmitter = emitters.get(key);
+
 //        if(sseEmitter == null){
 //            sseEmitter = new SseEmitter(30 * 60L * 1000);
 //            emitters.put(key, sseEmitter);
@@ -93,17 +92,20 @@ public class SseEmitters {
             list = wakeUpCacheRepository.createGroupUsersCache(list, groupId, groupUsers);
         }
 
+        Object[] wakeupDtos = list.toArray();
+        SseEmitter sseEmitter = emitters.get(key);
 
-        try {
-            sseEmitter.send(SseEmitter.event()
-                    .name("wakeupInfo")
-                    .data(list.toArray()));
-            log.info("SSE SEND!! : " + groupId);
-
-        } catch (IOException e) {
-            log.error("SSE ERROR : " + e.getMessage());
-            sseEmitter.completeWithError(e.getCause());
-        }
+//        try {
+//            sseEmitter.send(SseEmitter.event()
+//                    .name("wakeupInfo")
+//                    .data(list.toArray()));
+//            log.info("SSE SEND!! : " + groupId);
+//
+//        } catch (IOException e) {
+//            log.error("SSE ERROR : " + e.getMessage());
+//            sseEmitter.completeWithError(e.getCause());
+//        }
+        send(sseEmitter, wakeupDtos);
 
     }
 
@@ -119,17 +121,35 @@ public class SseEmitters {
              * 아직 기상 하지 않은 유저는 SSE 연결이 되어 있지 않음
              */
             if(sseEmitter == null) continue;
+//            try {
+//                sseEmitter.send(SseEmitter.event()
+//                        .name("wakeupInfo")
+//                        .data(wakeupDtoList.toArray()));
+//                log.info("SSE SEND!! : " + groupId);
+//
+//            } catch (IOException e) {
+//                log.error("SSE ERROR : " + e.getMessage());
+//                sseEmitter.completeWithError(e.getCause());
+//            }
+            Object[] wakeupDtos = wakeupDtoList.toArray();
+            send(sseEmitter, wakeupDtos);
+        }
+    }
+
+    private void send(SseEmitter sseEmitter, Object[] wakeupDtos){
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
             try {
                 sseEmitter.send(SseEmitter.event()
                         .name("wakeupInfo")
-                        .data(wakeupDtoList.toArray()));
-                log.info("SSE SEND!! : " + groupId);
-
+                        .data(wakeupDtos));
+                log.info("SSE SEND!! : " + wakeupDtos);
             } catch (IOException e) {
                 log.error("SSE ERROR : " + e.getMessage());
                 sseEmitter.completeWithError(e.getCause());
             }
-        }
+        });
+        executor.shutdown();
     }
 
     private String generateKey(Long groupId, String uuid){
