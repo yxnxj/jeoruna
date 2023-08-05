@@ -21,10 +21,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.*;
 
 @Component
 @Slf4j
@@ -37,7 +34,7 @@ public class SseEmitters {
     private final GroupRepository groupRepository;
 
     public SseEmitter add(Long groupId, String uuid) {
-        SseEmitter emitter = new SseEmitter(10 * 1000L);
+        SseEmitter emitter = new SseEmitter();
         String key = generateKey(groupId, uuid);
 
 ////        this.emitters.add(emitter);
@@ -147,16 +144,19 @@ public class SseEmitters {
         executor.execute(() -> {
             try {
                 sseEmitter.send(SseEmitter.event()
+                                .reconnectTime(60 * 1000)
                         .name("wakeupInfo")
                         .data(wakeupDtos));
                 log.info("SSE SEND!! : " + wakeupDtos);
 
-//                sseEmitter.complete();
+                sseEmitter.complete();
+                emitters.remove(generateKey(groupId, uuid));
             } catch (IOException | IllegalStateException e) {
                 log.error("SSE ERROR : " + e.getMessage());
                 sseEmitter.completeWithError(e.getCause());
+//                sseEmitter.complete();
                 emitters.remove(generateKey(groupId, uuid));
-                executor.shutdown();
+//                executor.shutdown();
             }
         });
         executor.shutdown();
