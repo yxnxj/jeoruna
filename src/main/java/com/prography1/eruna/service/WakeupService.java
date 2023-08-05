@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.prography1.eruna.response.BaseResponseStatus.NOT_FOUND_GROUP;
@@ -81,5 +82,21 @@ public class WakeupService {
             saveAll(list, groupId);
 //            wakeUpCacheRepository.deleteCachedGroup(groupId);
         }
+    }
+
+
+    public List<UserResDto.WakeupDto> findWakeupInfo(Long groupId) {
+        List<UserResDto.WakeupDto> list = wakeUpCacheRepository.getWakeupDtoList(groupId);
+        /**
+         * 캐싱된 데이터가 없으면 DB에서 캐싱과 동시에 그룹 유저들을 찾아 리스트를 반환한다.
+         */
+
+        if (list.isEmpty()) {
+            Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
+            List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
+            list = wakeUpCacheRepository.createGroupUsersCache(list, groupId, groupUsers);
+        }
+        list.sort(Comparator.comparing(UserResDto.WakeupDto::getWakeupTime));
+        return list;
     }
 }
