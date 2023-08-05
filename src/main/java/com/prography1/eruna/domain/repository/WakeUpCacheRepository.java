@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ public class WakeUpCacheRepository {
         if(updateIfPresent(cachingKey, wakeupDto)) return;
 
         redisTemplate.opsForList().rightPush(cachingKey, wakeupDto);
+        redisTemplate.expire(cachingKey, 60, TimeUnit.MINUTES);
     }
 
     private int isExistDtoInList(List<UserResDto.WakeupDto> list, UserResDto.WakeupDto wakeupDto, Long size){
@@ -42,8 +44,8 @@ public class WakeUpCacheRepository {
     }
 
     private Long getListSize(String key){
-        Long size = redisTemplate.opsForList().size(key); //key에 해당하는 list null 체크와 동시에 size도 확인한다.
-        if(Objects.isNull(size)) return 0L; //list 존재안하면 size가 null
+        Long size = redisTemplate.opsForList().size(key);
+        if(Objects.isNull(size)) return 0L; //list 존재안하면 size가 0
 
         return size;
     }
@@ -82,6 +84,7 @@ public class WakeUpCacheRepository {
                 .nickname(nickname)
                 .phoneNum(phoneNum)
                 .wakeup(true)
+                .wakeupDate(LocalDate.now().toString())
                 .wakeupTime(LocalTime.now().toString())
                 .build();
 
@@ -98,5 +101,19 @@ public class WakeUpCacheRepository {
         return true;
     }
 
+    public boolean isCachedGroupId(Long groupId){
+        String key = RedisGenKey.generateGroupKey(groupId);
+        Long size = redisTemplate.opsForList().size(key); 
+        return size != null && size != 0;
+    }
+
+    public boolean deleteCachedGroup(Long groupId){
+        String key = RedisGenKey.generateGroupKey(groupId);
+        if(isCachedGroupId(groupId)){
+            redisTemplate.delete(key);
+            return true;
+        }
+        return false;
+    }
 
 }

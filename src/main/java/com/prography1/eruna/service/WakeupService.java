@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,8 +43,8 @@ public class WakeupService {
         Wakeup wakeup = Wakeup.builder()
                 .alarm(alarm)
                 .wakeupCheck(true)
-                .date(LocalDate.now())
-                .wakeupTime(LocalDateTime.now())
+                .date(LocalDate.parse(wakeupDto.getWakeupDate()))
+                .wakeupTime(LocalTime.parse(wakeupDto.getWakeupTime()))
                 .user(user)
                 .build();
 
@@ -52,7 +53,7 @@ public class WakeupService {
 
     public List<Wakeup> saveAll(List<UserResDto.WakeupDto> list, Long groupId) {
         List<Wakeup> wakeupList = new ArrayList<>();
-
+        log.info("Group " + groupId +  " ALL WAKEUP!!");
         for(UserResDto.WakeupDto wakeupDto : list){
             wakeupList.add(save(wakeupDto, groupId));
             try {

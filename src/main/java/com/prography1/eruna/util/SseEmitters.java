@@ -72,6 +72,7 @@ public class SseEmitters {
 
         if(wakeUpCacheRepository.isAllWakeup(list)) {
             wakeupService.saveAll(list, groupId);
+            wakeUpCacheRepository.deleteCachedGroup(groupId);
             event = SseEmitter.event()
                     .name("allWakeUp")
                     .data(list);
