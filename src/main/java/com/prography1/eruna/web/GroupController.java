@@ -189,11 +189,11 @@ public class GroupController {
                                 "phoneNum" : "01000000000"
                             }"]""")
             })))
-    @GetMapping(value = "/wake-up/{groupId}/{uuid}")
-    public BaseResponse<List<UserResDto.WakeupDto>> sendWakeupInfo(@PathVariable Long groupId, @PathVariable String uuid){
+    @GetMapping(value = "/wake-up/{groupId}")
+    public BaseResponse<List<UserResDto.WakeupDto>> sendWakeupInfo(@PathVariable Long groupId){
 //      sseEmitters.add(groupId);
-      sseEmitters.sendWakeupInfo(groupId, uuid);
-      return new BaseResponse<>(sseEmitters.findWakeupInfo(groupId));
+//      sseEmitters.sendWakeupInfo(groupId, uuid);
+      return new BaseResponse<>(wakeupService.findWakeupInfo(groupId));
     }
 
     @CrossOrigin
@@ -231,10 +231,10 @@ public class GroupController {
                                 "phoneNum" : "01000000000"
                             }"]""")
     })))
-    @PostMapping("/wake-up/{groupId}/{uuid}")
-    public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @PathVariable String uuid){
-        wakeupService.updateWakeupInfo(groupId, uuid);
-        sseEmitters.sendWakeupInfo2All(groupId);
-        return new BaseResponse<>(sseEmitters.findWakeupInfo(groupId));
+    @PostMapping("/wake-up/{groupId}")
+    public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @RequestBody UUID uuid){
+        wakeupService.updateWakeupInfo(groupId, uuid.getUuid());
+//        sseEmitters.sendWakeupInfo2All(groupId);
+        return new BaseResponse<>(wakeupService.findWakeupInfo(groupId));
     }
 }
