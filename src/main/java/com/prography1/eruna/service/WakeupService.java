@@ -1,13 +1,7 @@
 package com.prography1.eruna.service;
 
-import com.prography1.eruna.domain.entity.Alarm;
-import com.prography1.eruna.domain.entity.Groups;
-import com.prography1.eruna.domain.entity.User;
-import com.prography1.eruna.domain.entity.Wakeup;
-import com.prography1.eruna.domain.repository.AlarmRepository;
-import com.prography1.eruna.domain.repository.GroupRepository;
-import com.prography1.eruna.domain.repository.UserRepository;
-import com.prography1.eruna.domain.repository.WakeupRepository;
+import com.prography1.eruna.domain.entity.*;
+import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.web.UserResDto;
@@ -24,6 +18,9 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.prography1.eruna.response.BaseResponseStatus.NOT_FOUND_GROUP;
+import static com.prography1.eruna.response.BaseResponseStatus.USER_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -32,6 +29,8 @@ public class WakeupService {
     private final AlarmRepository alarmRepository;
     private final GroupRepository groupRepository;
     private final WakeupRepository wakeupRepository;
+    private final GroupUserRepository groupUserRepository;
+    private final WakeUpCacheRepository wakeUpCacheRepository;
     private final Scheduler scheduler;
 
 
@@ -43,11 +42,10 @@ public class WakeupService {
         Wakeup wakeup = Wakeup.builder()
                 .alarm(alarm)
                 .wakeupCheck(true)
-                .date(LocalDate.parse(wakeupDto.getWakeupDate()))
+                .wakeupDate(LocalDate.now())
                 .wakeupTime(LocalTime.parse(wakeupDto.getWakeupTime()))
                 .user(user)
                 .build();
-
         return wakeupRepository.save(wakeup);
     }
 
@@ -70,5 +68,33 @@ public class WakeupService {
         JobKey jobKey = JobKey.jobKey(uuid);
         scheduler.deleteJob(jobKey);
         log.info("fcm job delete : " + uuid);
+    }
+
+    public void updateWakeupInfo(Long groupId, String uuid){
+
+        User user = userRepository.findByUuid(uuid).orElseThrow( () -> new BaseException(USER_NOT_FOUND));
+        GroupUser groupUser = groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        wakeUpCacheRepository.updateWakeupInfo(groupId, uuid, groupUser.getNickname(), groupUser.getPhoneNum());
+
+        if(wakeUpCacheRepository.isAllWakeup(groupId)) {
+            List<UserResDto.WakeupDto> list = wakeUpCacheRepository.getWakeupDtoList(groupId);
+            saveAll(list, groupId);
+//            wakeUpCacheRepository.deleteCachedGroup(groupId);
+        }
+    }
+
+    public List<UserResDto.WakeupDto> findWakeupInfo(Long groupId) {
+        List<UserResDto.WakeupDto> list = wakeUpCacheRepository.getWakeupDtoList(groupId);
+        /**
+         * 캐싱된 데이터가 없으면 DB에서 캐싱과 동시에 그룹 유저들을 찾아 리스트를 반환한다.
+         */
+
+        if (list.isEmpty()) {
+            Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
+            List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
+            list = wakeUpCacheRepository.createGroupUsersCache(list, groupId, groupUsers);
+        }
+
+        return list;
     }
 }
