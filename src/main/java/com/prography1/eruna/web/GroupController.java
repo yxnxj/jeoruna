@@ -204,14 +204,14 @@ public class GroupController {
       return new BaseResponse<>(wakeupService.findWakeupInfo(groupId));
     }
 
-    @CrossOrigin
-    @GetMapping(value = "/sse/{groupId}/{uuid}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter> connect(HttpServletResponse response, @PathVariable Long groupId, @PathVariable String uuid) {
-        SseEmitter emitter = sseEmitters.add(groupId, uuid);
-        response.addHeader("X-Accel-Buffering", "no");
-        sseEmitters.sendWakeupInfo(groupId, uuid);
-        return new ResponseEntity<>(emitter, HttpStatus.OK);
-    }
+//    @CrossOrigin
+//    @GetMapping(value = "/sse/{groupId}/{uuid}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+//    public ResponseEntity<SseEmitter> connect(HttpServletResponse response, @PathVariable Long groupId, @PathVariable String uuid) {
+//        SseEmitter emitter = sseEmitters.add(groupId, uuid);
+//        response.addHeader("X-Accel-Buffering", "no");
+//        sseEmitters.sendWakeupInfo(groupId, uuid);
+//        return new ResponseEntity<>(emitter, HttpStatus.OK);
+//    }
 
 
     @Operation(summary = "유저 기상", description = "캐싱된 기상정보 데이터들을 업데이트 한다.",
