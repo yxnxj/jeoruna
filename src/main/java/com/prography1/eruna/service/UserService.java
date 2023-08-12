@@ -27,6 +27,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final GroupUserRepository groupUserRepository;
+    private final WakeupService wakeupService;
 
     private final FirebaseMessaging firebaseMessaging;
 
@@ -74,6 +75,9 @@ public class UserService {
             return response;
         } catch (FirebaseMessagingException e) {
             log.error(e.getMessage()  + ", token: " + fcmToken);
+            if (e.getMessagingErrorCode() == MessagingErrorCode.INTERNAL){
+                wakeupService.updateWakeupInfo(fcmToken);
+            }
             return e.getMessage();
 //            throw new BaseException(BaseResponseStatus.INVALID_FCM_TOKEN);
         }

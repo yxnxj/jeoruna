@@ -5,6 +5,7 @@ import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.web.UserResDto;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobKey;
@@ -71,10 +72,20 @@ public class WakeupService {
     }
 
     public void updateWakeupInfo(Long groupId, String uuid){
-
         User user = userRepository.findByUuid(uuid).orElseThrow( () -> new BaseException(USER_NOT_FOUND));
+        updateWakeupInfo(user);
+    }
+
+    public void updateWakeupInfo(String fcmToken){
+        User user = userRepository.findByFcmToken(fcmToken).orElseThrow( () -> new BaseException(USER_NOT_FOUND));
+        updateWakeupInfo(user);
+    }
+
+    @Transactional
+    private void updateWakeupInfo(User user){
         GroupUser groupUser = groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
-        wakeUpCacheRepository.updateWakeupInfo(groupId, uuid, groupUser.getNickname(), groupUser.getPhoneNum());
+        Long groupId = groupUser.getGroups().getId();
+        wakeUpCacheRepository.updateWakeupInfo( groupId, user.getUuid(), groupUser.getNickname(), groupUser.getPhoneNum());
 
         if(wakeUpCacheRepository.isAllWakeup(groupId)) {
             List<UserResDto.WakeupDto> list = wakeUpCacheRepository.getWakeupDtoList(groupId);

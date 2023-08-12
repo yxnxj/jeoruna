@@ -10,4 +10,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Boolean existsByUuid(String uuid);
 
     Optional<User> findByUuid(String uuid);
+
+    Optional<User> findByFcmToken(String fcmToken);
 }
