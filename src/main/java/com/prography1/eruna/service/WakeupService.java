@@ -85,7 +85,7 @@ public class WakeupService {
     private void updateWakeupInfo(User user){
         GroupUser groupUser = groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         Long groupId = groupUser.getGroups().getId();
-        wakeUpCacheRepository.updateWakeupInfo( groupId, user.getUuid(), groupUser.getNickname(), groupUser.getPhoneNum());
+        wakeUpCacheRepository.updateAsWakeup( groupId, user.getUuid(), groupUser.getNickname(), groupUser.getPhoneNum());
 
         if(wakeUpCacheRepository.isAllWakeup(groupId)) {
             List<UserResDto.WakeupDto> list = wakeUpCacheRepository.getWakeupDtoList(groupId);
