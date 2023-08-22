@@ -14,7 +14,6 @@ public interface GroupUserRepository extends JpaRepository<GroupUser, GroupUser.
 
     Boolean existsByGroupsAndNickname(Groups group, String nickname);
 
-
     Optional<GroupUser> findByNickname(String nickname);
 
     @Query("select g from GroupUser g JOIN FETCH g.user where g.groups = :group")
@@ -27,4 +26,6 @@ public interface GroupUserRepository extends JpaRepository<GroupUser, GroupUser.
     boolean existsByGroupsAndUser(Groups group, User user);
 
     Long countByGroups(Groups groups);
+
+    boolean existsByUser(User user);
 }
