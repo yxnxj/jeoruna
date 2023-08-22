@@ -8,7 +8,6 @@ import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.web.GroupResDto;
 import lombok.RequiredArgsConstructor;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,8 +18,8 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.prography1.eruna.web.GroupReqDto.*;
 import static com.prography1.eruna.response.BaseResponseStatus.*;
+import static com.prography1.eruna.web.GroupReqDto.*;
 
 @RequiredArgsConstructor
 @Transactional
@@ -36,9 +35,12 @@ public class GroupService {
     private final AlarmService alarmService;
 
     public GroupResDto.CreatedGroup createGroup(CreateGroup createGroup) {
-        AlarmInfo alarmInfo = createGroup.getAlarmInfo();
         User host = userRepository.findByUuid(createGroup.getUuid())
                 .orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+        if(groupUserRepository.existsByUser(host)){
+            throw new BaseException(EXIST_JOIN_GROUP);
+        }
+        AlarmInfo alarmInfo = createGroup.getAlarmInfo();
         Groups group = Groups.create(host);
         Alarm alarm= alarmInfoToAlarm(alarmInfo, group);
         GroupUser groupUser = GroupUser.builder().user(host).groups(group).nickname(createGroup.getNickname())
