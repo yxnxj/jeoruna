@@ -90,6 +90,9 @@ public class GroupService {
     public Long joinGroupUser(String code, String uuid, String nickname, String phoneNum){
         Groups group = findByCode(code);
         User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        if(groupUserRepository.existsByUser(user)){
+            throw new BaseException(EXIST_JOIN_GROUP);
+        }
         GroupUser.GroupUserId groupUserId = GroupUser.GroupUserId.builder()
                 .groupId(group.getId())
                 .userId(user.getId())
