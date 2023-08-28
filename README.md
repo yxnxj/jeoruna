@@ -41,7 +41,7 @@ MySQL의 라이센스 문제와 MariaDB의 쿼리 성능 및 본 프로젝트에
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://**[RDS-url]**:3306/eruna?serverTimezone=Asia
+    url: jdbc:mysql://[RDS-url]:3306/eruna?serverTimezone=Asia
     username: 
     password:
 ```
@@ -66,7 +66,7 @@ spring:
 spring:
   data:
     redis:
-      host:**[Redis-url]**
+      host:[Redis-url]
       port: 6379
 ```
 
@@ -92,17 +92,19 @@ spring:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://**[RDS-url]**:3306/eruna?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://[RDS-url]:3306/eruna?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: 
     password: 
-
+  batch:
+    jdbc:
+      initialize-schema: always
   jpa:
     show-sql: true
-  #    hibernate:
-  #      ddl-auto: create
+      hibernate:
+        ddl-auto: create
   data:
     redis:
-      host: **[redis-url]**
+      host: [redis-url]
       port: 6379
 
 ```
