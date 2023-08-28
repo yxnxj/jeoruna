@@ -13,13 +13,13 @@
 
 # 목차
 - [시작하기](#시작하기)
-  - [application.yml](##application.yml)
-  - [build](##Build)
-  - [Jar 실행](##Jar)
-  - [배포](##배포)
+  - [application.yml](#application.yml)
+  - [Build](#Build)
+  - [Jar 실행](#Jar-실행)
+  - [배포](#배포)
 - [구현](#구현)
 - [테스트](#테스트)
-- [인프라 스트럭처](#인프라)
+- [인프라 스트럭처](#인프라-스트럭처)
 
 # 시작하기
 
