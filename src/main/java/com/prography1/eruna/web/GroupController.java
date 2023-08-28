@@ -6,6 +6,7 @@ import com.prography1.eruna.response.BaseResponse;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.GroupService;
 import com.prography1.eruna.service.UserService;
+import com.prography1.eruna.service.WakeupService;
 import com.prography1.eruna.util.SseEmitters;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -14,11 +15,20 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.prography1.eruna.web.GroupReqDto.*;
 import static com.prography1.eruna.web.GroupResDto.*;
@@ -33,6 +43,7 @@ public class GroupController {
 
     private final GroupService groupService;
     private final UserService userService;
+    private final WakeupService wakeupService;
     private final SseEmitters sseEmitters;
     @Operation(summary = "그룹 만들기", description = "알람 그룹 만들기")
     @PostMapping("")
@@ -76,6 +87,12 @@ public class GroupController {
         return new BaseResponse<>(e.getStatus());
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public BaseResponse<String> handleRuntimeException(RuntimeException e) {
+        log.info(e.getMessage());
+        return new BaseResponse<>(e.getMessage());
+    }
+
     @Operation(summary = "닉네임 중복 확인", description = "참여하려는 그룹에 중복된 닉네임이 있는지 확인한다.",
             responses =
             @ApiResponse(responseCode = "200", description = "닉네임 유효 확인",
@@ -117,6 +134,14 @@ public class GroupController {
         return new BaseResponse<>(new NewGroupCode(newCode));
     }
 
+    @Operation(summary = "그룹 코드 validation", description = "그룹 코드 validation")
+    @GetMapping("/{code}/validation")
+    public BaseResponse<String> checkGroupCode(@PathVariable String code){
+        if(!groupService.isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
+        if(groupService.isFullMember(code)) throw new BaseException(BaseResponseStatus.FULL_MEMBER);
+        return new BaseResponse<>("ok");
+    }
+
 
     @Operation(summary = "그룹 멤버 강퇴", description = "그룹 멤버 강퇴")
     @PatchMapping("/{groupId}/kick/{nickname}")
@@ -136,14 +161,14 @@ public class GroupController {
     }
 
     @Operation(summary = "그룹 나가기", description = "그룹 나가기")
-    @DeleteMapping("/{groupId}/exit")
+    @PostMapping("/{groupId}/exit")
     public BaseResponse<String> exitGroup(@PathVariable Long groupId, @RequestBody UUID uuid){
         groupService.exitGroup(groupId, uuid.getUuid());
         return new BaseResponse<>("ok");
     }
 
     @Operation(summary = "그룹 삭제", description = "그룹 삭제")
-    @DeleteMapping("/{groupId}")
+    @PostMapping("/{groupId}/delete")
     public BaseResponse<String> deleteGroup(@PathVariable Long groupId, @RequestBody UUID uuid){
         groupService.deleteGroup(groupId, uuid.getUuid());
         return new BaseResponse<>("ok");
@@ -162,19 +187,32 @@ public class GroupController {
                                 "uuid": "6e383010-7621-437b-98d5-fe2147465ac0",
                                 "nickname": "user name1",
                                 "wakeup": false,
-                                "wakeupTime": "0:00:00"
+                                "wakeupTime": "15:19:47.459",
+                                "phoneNum" : "01000000000"
                             }", " {
                                 "uuid": "fe214749-4321-437b-54d1-fe216e383010",
                                 "nickname": "user name2",
-                                "wakeup": false,
-                                "wakeupTime": "0:00:00"
+                                "wakeup": true,
+                                "wakeupTime": "21:19:47.459",
+                                "phoneNum" : "01000000000"
                             }"]""")
             })))
-    @GetMapping("/wake-up/{groupId}")
+    @GetMapping(value = "/wake-up/{groupId}")
     public BaseResponse<List<UserResDto.WakeupDto>> sendWakeupInfo(@PathVariable Long groupId){
-        return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId));
-//        return ResponseEntity.ok(emitter);
+//      sseEmitters.add(groupId);
+//      sseEmitters.sendWakeupInfo(groupId, uuid);
+      return new BaseResponse<>(wakeupService.findWakeupInfo(groupId));
     }
+
+//    @CrossOrigin
+//    @GetMapping(value = "/sse/{groupId}/{uuid}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+//    public ResponseEntity<SseEmitter> connect(HttpServletResponse response, @PathVariable Long groupId, @PathVariable String uuid) {
+//        SseEmitter emitter = sseEmitters.add(groupId, uuid);
+//        response.addHeader("X-Accel-Buffering", "no");
+//        sseEmitters.sendWakeupInfo(groupId, uuid);
+//        return new ResponseEntity<>(emitter, HttpStatus.OK);
+//    }
+
 
     @Operation(summary = "유저 기상", description = "캐싱된 기상정보 데이터들을 업데이트 한다.",
             responses =
@@ -191,19 +229,20 @@ public class GroupController {
                                 "uuid": "6e383010-7621-437b-98d5-fe2147465ac0",
                                 "nickname": "user name1",
                                 "wakeup": false,
-                                "wakeupTime": "15:19:47.459"
+                                "wakeupTime": "15:19:47.459",
+                                "phoneNum" : "01000000000"
                             }", " {
                                 "uuid": "fe214749-4321-437b-54d1-fe216e383010",
                                 "nickname": "user name2",
                                 "wakeup": true,
-                                "wakeupTime": "21:19:47.459"
+                                "wakeupTime": "21:19:47.459",
+                                "phoneNum" : "01000000000"
                             }"]""")
     })))
-    @PostMapping("/wake-up/{groupId}/{uuid}")
-    public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @PathVariable String uuid){
-//        SseEmitter emitter = new SseEmitter(60*1000L);
-//        sseEmitters.add(groupId, emitter);
-        groupService.updateWakeupInfo(groupId, uuid);
-        return new BaseResponse<>(sseEmitters.sendWakeupInfo(groupId));
+    @PostMapping("/wake-up/{groupId}")
+    public BaseResponse<List<UserResDto.WakeupDto>> userWakeup(@PathVariable Long groupId, @RequestBody UUID uuid){
+        wakeupService.updateWakeupInfo(groupId, uuid.getUuid());
+//        sseEmitters.sendWakeupInfo2All(groupId);
+        return new BaseResponse<>(wakeupService.findWakeupInfo(groupId));
     }
 }

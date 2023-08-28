@@ -28,6 +28,8 @@ public enum BaseResponseStatus {
     NOT_FOUND_ALARM(false, 2009, "해당 알람 정보를 찾을 수 없습니다."),
     ALREADY_IN_GROUP_USER(false, 2010, "이미 그룹 내에 존재하는 유저입니다."),
     HOST_CANNOT_EXIT(false, 2011, "방장은 방을 나갈 수 없습니다."),
+    FULL_MEMBER(false, 2012, "그룹의 인원이 모두 찼습니다."),
+    EXIST_JOIN_GROUP(false,2013, "이미 참여된 방이 있는 유저입니다."),
 
 
 
@@ -41,6 +43,9 @@ public enum BaseResponseStatus {
      * 4000 : Database, Server 오류
      */
     DATABASE_ERROR(false, 4000, "데이터베이스 연결에 실패하였습니다."),
+
+    SCHEDULER_ERROR(false, 4001, "스케줄러 오류가 발생했습니다."),
+    SSE_EMITTER_NOT_FOUND(false, 4002, "해당 GROUP_ID에 대한 SSE 연결을 찾을 수 없습니다.")
     ;
 
     private final boolean isSuccess;

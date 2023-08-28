@@ -33,72 +33,32 @@ import java.util.List;
 
 import static com.prography1.eruna.util.SendFcmJob.setFcmJobTrigger;
 
-@Component
-@RequiredArgsConstructor
-
+//@Component
+//@RequiredArgsConstructor
 public class JobCompletionNotificationListener implements JobExecutionListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobCompletionNotificationListener.class);
-    private final Scheduler scheduler;
-    private final GroupRepository groupRepository;
-    private final AlarmService alarmService;
-    private final GroupUserRepository groupUserRepository;
-    private final WakeUpCacheRepository wakeUpCacheRepository;
-    @Override
-//    @Transactional
-    public void afterJob(JobExecution jobExecution) {
-        if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
-            try {
-                List<Alarm> alarms = (List<Alarm>) scheduler.getContext().get("alarms");
-
-                if(alarms == null) alarms = new ArrayList<>();
-                for(int i = 0 ; i < alarms.size(); i++){
-                    Alarm alarm = alarms.get(i);
-
-
-                    Groups group = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.DATABASE_ERROR));
-
-                    createIndividualSchedule(group, alarm);
-
-                }
-            } catch (SchedulerException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private void createIndividualSchedule(Groups group, Alarm alarm) throws SchedulerException {
-        LocalTime time = alarm.getAlarmTime();
-        if(LocalTime.now().isAfter(time)){
-            return;
-        }
-        List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
-        for (GroupUser groupUser : groupUsers) {
-            User user = groupUser.getUser();
-            String nickname = groupUser.getNickname();
-            String phoneNum = groupUser.getPhoneNum();
-            UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(user, nickname, phoneNum);
-            wakeUpCacheRepository.addSleepUser(group.getId(), wakeupDto);
-            alarmService.createJob(alarm, user);
-            String fcmToken = user.getFcmToken();
-            JobDataMap jobDataMap = new JobDataMap();
-            jobDataMap.put("fcmToken", user.getFcmToken());
-            jobDataMap.put("alarmSound", alarm.getAlarmSound().toString());
-            jobDataMap.put("uuid", user.getUuid());
-
-            JobDetail job = JobBuilder
-                    .newJob(SendFcmJob.class)
-                    .withIdentity(user.getUuid())
-                    .usingJobData(jobDataMap)
-                    .build();
-            if(scheduler.checkExists(job.getKey())) continue;
-            LOGGER.info("__________Schedule__________");
-            LOGGER.info("group : " + group.getId() + ", user : " + user.getId() + ", alarm : " + alarm.getAlarmTime());
-            scheduler.scheduleJob(job, setFcmJobTrigger(alarm.getAlarmTime()));
-        }
-
-
-    }
-
+//    private static final Logger LOGGER = LoggerFactory.getLogger(JobCompletionNotificationListener.class);
+//    private final Scheduler scheduler;
+//    private final GroupRepository groupRepository;
+//    private final AlarmService alarmService;
+//    @Override
+////    @Transactional
+//    public void afterJob(JobExecution jobExecution) {
+//        if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
+//            try {
+//                List<Alarm> alarms = (List<Alarm>) scheduler.getContext().get("alarms");
+//
+//                if(alarms == null) alarms = new ArrayList<>();
+//                for(int i = 0 ; i < alarms.size(); i++){
+//                    Alarm alarm = alarms.get(i);
+//
+//                    Groups group = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.DATABASE_ERROR));
+//                    alarmService.createAlarmScheduleInGroup(alarm, group);
+//                }
+//            } catch (SchedulerException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//    }
 
 }

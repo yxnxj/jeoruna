@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class UserResDto {
@@ -36,7 +37,7 @@ public class UserResDto {
         private String nickname;
         @Schema(title = "기상 상태" , defaultValue = "false", description = "기상 API가 요청됐을 때 true로 갱신된다.", example = "true")
         private Boolean wakeup;
-        @Schema(title = "기상 시간", description = "기상 API로 요청 받으면 요청 시간으로 갱신된다.", example = "15:19:47.459", defaultValue = "0:00:00")
+        @Schema(title = "기상 시간", description = "기상 API로 요청 받으면 요청 시간으로 갱신된다.", example = "15:19:47.459", defaultValue = "23:59:00")
         private String wakeupTime;
         @Schema(title = "전화 번호", description = "유저의 전화번호", example = "01012345678")
         private String phoneNum;

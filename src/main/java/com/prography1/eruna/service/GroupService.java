@@ -8,19 +8,19 @@ import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.web.GroupResDto;
 import lombok.RequiredArgsConstructor;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.prography1.eruna.web.GroupReqDto.*;
 import static com.prography1.eruna.response.BaseResponseStatus.*;
+import static com.prography1.eruna.web.GroupReqDto.*;
 
 @RequiredArgsConstructor
 @Transactional
@@ -36,9 +36,12 @@ public class GroupService {
     private final AlarmService alarmService;
 
     public GroupResDto.CreatedGroup createGroup(CreateGroup createGroup) {
-        AlarmInfo alarmInfo = createGroup.getAlarmInfo();
         User host = userRepository.findByUuid(createGroup.getUuid())
                 .orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+        if(groupUserRepository.existsByUser(host)){
+            throw new BaseException(EXIST_JOIN_GROUP);
+        }
+        AlarmInfo alarmInfo = createGroup.getAlarmInfo();
         Groups group = Groups.create(host);
         Alarm alarm= alarmInfoToAlarm(alarmInfo, group);
         GroupUser groupUser = GroupUser.builder().user(host).groups(group).nickname(createGroup.getNickname())
@@ -53,11 +56,9 @@ public class GroupService {
         }
         groupRepository.save(group);
         alarmRepository.save(alarm);
-        try {
-            alarmService.addAlarmScheduleOnCreate(alarm, groupUser, dayOfWeekList);
-        } catch (SchedulerException e) {
-            throw new RuntimeException(e);
-        }
+
+        alarmService.addAlarmScheduleOnCreate(alarm, groupUser, dayOfWeekList);
+
         groupUserRepository.save(groupUser);
         for(DayOfWeek dayOfWeek : dayOfWeekList){
             dayOfWeekRepository.save(dayOfWeek);
@@ -89,6 +90,9 @@ public class GroupService {
     public Long joinGroupUser(String code, String uuid, String nickname, String phoneNum){
         Groups group = findByCode(code);
         User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        if(groupUserRepository.existsByUser(user)){
+            throw new BaseException(EXIST_JOIN_GROUP);
+        }
         GroupUser.GroupUserId groupUserId = GroupUser.GroupUserId.builder()
                 .groupId(group.getId())
                 .userId(user.getId())
@@ -102,11 +106,9 @@ public class GroupService {
                 .build();
         Alarm alarm = alarmRepository.findByGroups(group).orElseThrow(() -> new BaseException(NOT_FOUND_ALARM));
         List<DayOfWeek> dayOfWeekList = dayOfWeekRepository.findAllByAlarm(alarm);
-        try {
-            alarmService.addAlarmScheduleOnCreate(alarm, groupUser, dayOfWeekList);
-        } catch (SchedulerException e) {
-            throw new RuntimeException(e);
-        }
+
+        alarmService.addAlarmScheduleOnCreate(alarm, groupUser, dayOfWeekList);
+
         groupUserRepository.save(groupUser);
         return group.getId();
     }
@@ -115,12 +117,7 @@ public class GroupService {
         return groupRepository.findById(groupId).orElseThrow(()-> new BaseException(NOT_FOUND_GROUP));
     }
 
-    public void updateWakeupInfo(Long groupId, String uuid){
 
-        User user = userRepository.findByUuid(uuid).orElseThrow( () -> new BaseException(USER_NOT_FOUND));
-        GroupUser groupUser = groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
-        wakeUpCacheRepository.updateWakeupInfo(groupId, uuid, groupUser.getNickname(), groupUser.getPhoneNum());
-    }
     public void kickMember(Long groupId, String nickname, String hostUuid) {
         User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
         Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
@@ -163,11 +160,9 @@ public class GroupService {
             dayOfWeekRepository.save(dayOfWeek);
         }
 
-        try {
-            alarmService.editAlarmScheduleNow(group.getAlarm(), group, newDayOfWeekList);
-        } catch (SchedulerException e) {
-            throw new RuntimeException(e);
-        }
+
+        alarmService.editAlarmScheduleNow(group.getAlarm(), group, newDayOfWeekList);
+
     }
 
     public boolean isUserExistInGroup(String uuid, String code){
@@ -222,5 +217,13 @@ public class GroupService {
             throw new BaseException(NOT_HOST);
         }
         groupRepository.delete(group);
+    }
+
+    public boolean isFullMember(String code) {
+        if(groupMemberCountByCode(code)>3) {
+            return true;
+        }else{
+            return false;
+        }
     }
 }

@@ -86,12 +86,16 @@ public class UserService {
      * TODO : 빈 데이터를 가진 임의의 메시지 인스턴스가 클라이언트단에 어떻게 전달이 되는지 확인 필요
      */
     public Boolean isValidFCMToken(String fcmToken) {
-        Message message = Message.builder().setToken(fcmToken).build();
+
+        Message message = Message.builder()
+                .setToken(fcmToken)
+                .build();
         try {
             firebaseMessaging.send(message);
             return true;
         } catch (FirebaseMessagingException fme) {
-            log.error("Firebase token verification exception", fme);
+            log.error("Firebase token verification exception : " + fme.getMessage());
+            log.error("FCM error code : " + fme.getMessagingErrorCode());
             return false;
         }
     }
