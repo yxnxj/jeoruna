@@ -42,18 +42,18 @@ public class SendFcmJob implements Job {
     @Override
     public void execute(JobExecutionContext context) {
         JobDataMap jobDataMap = context.getMergedJobDataMap();
-        String fcmToken =  jobDataMap.getString("fcmToken");
+        String fcmToken = jobDataMap.getString("fcmToken");
         AlarmSound alarmSound = AlarmSound.valueOf(jobDataMap.getString("alarmSound"));
         log.info("push message schedule is executed : " + fcmToken);
 
-        if(!userService.isValidFCMToken(fcmToken)) {
+        if (!userService.isValidFCMToken(fcmToken)) {
             String uuid = jobDataMap.getString("uuid");
             JobKey jobKey = JobKey.jobKey(uuid);
             try {
                 scheduler.deleteJob(jobKey);
-                log.warn("fcmToken : " + fcmToken + "is not valid" );
+                log.warn("fcmToken : " + fcmToken + "is not valid");
                 log.warn("jobKey : " + jobKey.getName() + "schedule is deleted");
-            }catch (SchedulerException e){
+            } catch (SchedulerException e) {
                 log.error("SCHEDULER ERROR : " + e.getMessage());
                 throw new BaseException(BaseResponseStatus.SCHEDULER_ERROR);
             }
@@ -61,15 +61,31 @@ public class SendFcmJob implements Job {
         userService.pushMessage(fcmToken, alarmSound.getFilename());
     }
 
-    public static Trigger setFcmJobTrigger(LocalTime localTime){
-        LocalDate localDate = LocalDate.now();
-        LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
-//        localDateTime.plusMinutes(1);
+
+    public static JobDataMap mapDataForFCMJob(Alarm alarm, User user) {
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("fcmToken", user.getFcmToken());
+        jobDataMap.put("uuid", user.getUuid());
+        jobDataMap.put("alarmSound", alarm.getAlarmSound().toString());
+
+        return jobDataMap;
+    }
+
+
+    //FCM 무한 전송의 limit 시간은 20분이다. 2초 간격으로 600번의 요청을 보낸다.
+    private final static int repeatCount = 600;
+    private final static int interval = 2000;
+
+    public static Trigger setJobTrigger(LocalTime startTime, LocalDate localDate) {
+        LocalDateTime localDateTime = LocalDateTime.of(localDate, startTime);
         Date date = java.sql.Timestamp.valueOf(localDateTime);
+
         return TriggerBuilder.newTrigger()
                 .startAt(date)
                 //FCM 무한 전송의 limit 시간은 20분이다. 2초 간격으로 600번의 요청을 보낸다.
                 .withSchedule(simpleSchedule().withRepeatCount(600).withIntervalInMilliseconds(2000))
                 .build();
     }
+
+
 }

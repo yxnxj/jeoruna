@@ -4,6 +4,8 @@ import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
+import com.prography1.eruna.util.JobConfig;
+import com.prography1.eruna.util.ScheduleManager;
 import com.prography1.eruna.util.SendFcmJob;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
@@ -20,13 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import static com.prography1.eruna.util.SendFcmJob.setFcmJobTrigger;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AlarmService {
-    private final Scheduler scheduler;
+    private final ScheduleManager schedulerManager;
     private final GroupUserRepository groupUserRepository;
     private final DayOfWeekRepository dayOfWeekRepository;
     private final WakeUpCacheRepository wakeUpCacheRepository;
@@ -42,33 +42,7 @@ public class AlarmService {
         UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(host, groupUser.getNickname(), groupUser.getPhoneNum());
         wakeUpCacheRepository.addSleepUser(groupUser.getGroups().getId(), wakeupDto);
 
-        createJob(alarm, host);
-    }
-
-    private void createJob(Alarm alarm, User user) {
-        JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("fcmToken", user.getFcmToken());
-        jobDataMap.put("uuid", user.getUuid());
-        jobDataMap.put("alarmSound", alarm.getAlarmSound().toString());
-
-        JobDetail job = JobBuilder
-                .newJob(SendFcmJob.class)
-                .withIdentity(user.getUuid())
-                .usingJobData(jobDataMap)
-                .build();
-        try{
-            if(scheduler.checkExists(job.getKey())) {
-                JobKey jobKey = JobKey.jobKey(user.getUuid());
-                scheduler.deleteJob(jobKey);
-            }
-            log.info("__________Schedule__________");
-            log.info("group : " + alarm.getGroups().getId() + ", alarm : " + alarm.getAlarmTime());
-            scheduler.scheduleJob(job, setFcmJobTrigger(alarm.getAlarmTime()));
-        }catch (SchedulerException e){
-            log.error("SCHEDULER ERROR : " + e.getMessage());
-            throw new BaseException(BaseResponseStatus.SCHEDULER_ERROR);
-        }
-
+        createAlarmSchedule(alarm, host);
     }
 
     private boolean isTodayAlarm(List<DayOfWeek> days){
@@ -125,8 +99,20 @@ public class AlarmService {
             String phoneNum = groupUser.getPhoneNum();
             UserResDto.WakeupDto wakeupDto = UserResDto.WakeupDto.fromUser(user, nickname, phoneNum);
             wakeUpCacheRepository.addSleepUser(groupUser.getGroups().getId(), wakeupDto);
-            createJob(alarm, user);
+            createAlarmSchedule(alarm, user);
         }
     }
+
+    private void createAlarmSchedule(Alarm alarm, User user){
+        JobDataMap mapData = SendFcmJob.mapDataForFCMJob(alarm, user);
+        JobConfig jobConfig = JobConfig.builder()
+                .jobClass(SendFcmJob.class)
+                .jobDataMap(mapData)
+                .trigger(SendFcmJob.setJobTrigger(alarm.getAlarmTime(), LocalDate.now()))
+                .build();
+
+        schedulerManager.createSchedule(jobConfig, user.getUuid());
+    }
+
 
 }
