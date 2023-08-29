@@ -2,23 +2,18 @@ package com.prography1.eruna.service;
 
 import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.repository.*;
-import com.prography1.eruna.response.BaseException;
-import com.prography1.eruna.response.BaseResponseStatus;
-import com.prography1.eruna.util.JobConfig;
-import com.prography1.eruna.util.ScheduleManager;
-import com.prography1.eruna.util.SendFcmJob;
+import com.prography1.eruna.util.scheduler.job.JobConfig;
+import com.prography1.eruna.util.scheduler.ScheduleManager;
+import com.prography1.eruna.util.scheduler.job.SendFcmJob;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.TextStyle;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
