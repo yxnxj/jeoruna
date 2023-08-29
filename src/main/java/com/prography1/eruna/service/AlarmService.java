@@ -100,7 +100,7 @@ public class AlarmService {
 
     private void createAlarmSchedule(Alarm alarm, User user){
         JobDataMap mapData = SendFcmJob.mapDataForFCMJob(alarm, user);
-        JobConfig jobConfig = JobConfig.builder()
+        JobWithDataConfig jobConfig = JobWithDataConfig.builder()
                 .jobClass(SendFcmJob.class)
                 .jobDataMap(mapData)
                 .trigger(SendFcmJob.setJobTrigger(alarm.getAlarmTime(), LocalDate.now()))
