@@ -1,18 +1,12 @@
-package com.prography1.eruna.util;
+package com.prography1.eruna.util.scheduler;
 
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import com.prography1.eruna.util.scheduler.job.JobConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.stereotype.Component;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @RequiredArgsConstructor
 @Component

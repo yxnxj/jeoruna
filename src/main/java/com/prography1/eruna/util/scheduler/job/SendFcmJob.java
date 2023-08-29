@@ -1,33 +1,21 @@
-package com.prography1.eruna.util;
+package com.prography1.eruna.util.scheduler.job;
 
-import com.google.firebase.messaging.FirebaseMessagingException;
 import com.prography1.eruna.domain.entity.Alarm;
-import com.prography1.eruna.domain.entity.GroupUser;
-import com.prography1.eruna.domain.entity.Groups;
 import com.prography1.eruna.domain.entity.User;
 import com.prography1.eruna.domain.enums.AlarmSound;
-import com.prography1.eruna.domain.repository.GroupUserRepository;
-import com.prography1.eruna.domain.repository.WakeUpCacheRepository;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.UserService;
-import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
-import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
-import java.util.List;
 
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 

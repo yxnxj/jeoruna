@@ -1,4 +1,4 @@
-package com.prography1.eruna.util;
+package com.prography1.eruna.util.scheduler.job;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.extern.slf4j.Slf4j;

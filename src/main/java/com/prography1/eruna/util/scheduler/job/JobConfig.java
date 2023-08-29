@@ -1,4 +1,4 @@
-package com.prography1.eruna.util;
+package com.prography1.eruna.util.scheduler.job;
 
 import lombok.Builder;
 import lombok.Getter;
