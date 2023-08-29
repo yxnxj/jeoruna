@@ -2,8 +2,8 @@ package com.prography1.eruna.service;
 
 import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.repository.*;
-import com.prography1.eruna.util.scheduler.job.JobConfig;
-import com.prography1.eruna.util.scheduler.ScheduleManager;
+import com.prography1.eruna.util.scheduler.SchedulerManager;
+import com.prography1.eruna.util.scheduler.job.JobWithDataConfig;
 import com.prography1.eruna.util.scheduler.job.SendFcmJob;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import java.util.Locale;
 @RequiredArgsConstructor
 @Slf4j
 public class AlarmService {
-    private final ScheduleManager schedulerManager;
+    private final SchedulerManager schedulerManager;
     private final GroupUserRepository groupUserRepository;
     private final DayOfWeekRepository dayOfWeekRepository;
     private final WakeUpCacheRepository wakeUpCacheRepository;

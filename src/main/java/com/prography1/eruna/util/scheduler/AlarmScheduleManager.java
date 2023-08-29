@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 @Slf4j
-public class ScheduleManager implements ScheduleCreator{
+public class AlarmScheduleManager implements SchedulerManager{
 
     private final Scheduler scheduler;
     @Override
@@ -23,9 +23,7 @@ public class ScheduleManager implements ScheduleCreator{
                 .build();
 
         try{
-            if(scheduler.checkExists(job.getKey())) {
-                scheduler.deleteJob(job.getKey());
-            }
+            deleteIfExist(job.getKey());
             log.info("__________Schedule__________");
             log.info("identity : " + identity + ", alarm : " + jobConfig.getTrigger().getStartTime());
 
@@ -45,14 +43,24 @@ public class ScheduleManager implements ScheduleCreator{
                 .build();
 
         try{
-            if(scheduler.checkExists(job.getKey())) {
-                scheduler.deleteJob(job.getKey());
-            }
+            deleteIfExist(job.getKey());
             log.info("__________Schedule__________");
             log.info("identity : " + identity + ", alarm : " + jobConfig.getTrigger().getStartTime());
 
             scheduler.scheduleJob(job, jobConfig.getTrigger());
         }catch (SchedulerException e){
+            log.error("SCHEDULER ERROR : " + e.getMessage());
+            throw new BaseException(BaseResponseStatus.SCHEDULER_ERROR);
+        }
+    }
+
+    @Override
+    public void deleteIfExist(JobKey jobKey) {
+        try {
+            if(scheduler.checkExists(jobKey)) {
+                scheduler.deleteJob(jobKey);
+            }
+        } catch (SchedulerException e) {
             log.error("SCHEDULER ERROR : " + e.getMessage());
             throw new BaseException(BaseResponseStatus.SCHEDULER_ERROR);
         }
