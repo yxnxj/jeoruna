@@ -106,8 +106,10 @@ public class AlarmService {
                 .trigger(SendFcmJob.setJobTrigger(alarm.getAlarmTime(), LocalDate.now()))
                 .build();
 
-        schedulerManager.createSchedule(jobConfig, user.getUuid());
+        String identity = user.getUuid();
+        log.info("__________Schedule__________");
+        log.info("identity : " + identity + ", alarm : " + jobConfig.getTrigger().getStartTime());
+        schedulerManager.deleteIfExist(JobKey.jobKey(identity));
+        schedulerManager.createSchedule(jobConfig, identity);
     }
-
-
 }

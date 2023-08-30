@@ -23,10 +23,6 @@ public class AlarmScheduleManager implements SchedulerManager{
                 .build();
 
         try{
-            deleteIfExist(job.getKey());
-            log.info("__________Schedule__________");
-            log.info("identity : " + identity + ", alarm : " + jobConfig.getTrigger().getStartTime());
-
             scheduler.scheduleJob(job, jobConfig.getTrigger());
         }catch (SchedulerException e){
             log.error("SCHEDULER ERROR : " + e.getMessage());
@@ -43,10 +39,6 @@ public class AlarmScheduleManager implements SchedulerManager{
                 .build();
 
         try{
-            deleteIfExist(job.getKey());
-            log.info("__________Schedule__________");
-            log.info("identity : " + identity + ", alarm : " + jobConfig.getTrigger().getStartTime());
-
             scheduler.scheduleJob(job, jobConfig.getTrigger());
         }catch (SchedulerException e){
             log.error("SCHEDULER ERROR : " + e.getMessage());
