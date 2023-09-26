@@ -7,7 +7,6 @@
 
 - 소개 포스터 : [post.md](https://github.com/Eruna-Jeoruna/jeoruna/blob/main/post.md)
 - 커밋 컨벤션 : [convention.md](https://github.com/Eruna-Jeoruna/jeoruna/blob/main/convention.md)
-- IOS 앱 스토어: (9월 예정)
 
 
 
