@@ -67,16 +67,9 @@ public class GroupController {
                     )))
     @PostMapping("/{code}")
     public BaseResponse<Long> userJoinGroup(@PathVariable String code, @RequestBody GroupJoinUserInfo groupJoinUserInfo){
-        if(!groupService.isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
-        String uuid = groupJoinUserInfo.getUuid();
-        if(!userService.isUserExist(uuid)) throw new BaseException(BaseResponseStatus.INVALID_UUID_TOKEN);
-        if(groupService.isUserExistInGroup(uuid, code))
-            throw new BaseException(BaseResponseStatus.ALREADY_IN_GROUP_USER);
         String nickname = groupJoinUserInfo.getNickname();
-        if(groupService.isDuplicatedNickname(code, nickname)) throw new BaseException(BaseResponseStatus.DUPLICATED_NICKNAME);
-
-
-
+        String uuid = groupJoinUserInfo.getUuid();
+        groupService.checkUserJoinException(code, uuid, nickname);
         return new BaseResponse<>(groupService.joinGroupUser(code, uuid, nickname, groupJoinUserInfo.getPhoneNum()));
     }
 

@@ -226,4 +226,13 @@ public class GroupService {
             return false;
         }
     }
+
+    public void checkUserJoinException(String code, String uuid, String nickname) {
+        if(!this.isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
+        if(!userRepository.existsByUuid(uuid)) throw new BaseException(BaseResponseStatus.INVALID_UUID_TOKEN);
+        if(this.isUserExistInGroup(uuid, code))
+            throw new BaseException(BaseResponseStatus.ALREADY_IN_GROUP_USER);
+        if(this.isDuplicatedNickname(code, nickname)) throw new BaseException(BaseResponseStatus.DUPLICATED_NICKNAME);
+
+    }
 }
