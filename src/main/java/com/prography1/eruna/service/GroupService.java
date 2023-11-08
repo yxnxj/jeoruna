@@ -241,4 +241,11 @@ public class GroupService {
         String hostNickname = getHostNicknameByGroupCode(code);
         return new GroupResDto.GroupPreview(groupMemberCount, hostNickname);
     }
+
+    public boolean isActiveGroupCode(String code){
+        if(!isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
+        if(isFullMember(code)) throw new BaseException(BaseResponseStatus.FULL_MEMBER);
+
+        return true;
+    }
 }

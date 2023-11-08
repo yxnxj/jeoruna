@@ -3,7 +3,6 @@ package com.prography1.eruna.web;
 import com.prography1.eruna.domain.entity.Groups;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponse;
-import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.GroupService;
 import com.prography1.eruna.service.UserService;
 import com.prography1.eruna.service.WakeupService;
@@ -121,9 +120,9 @@ public class GroupController {
     @Operation(summary = "그룹 코드 validation", description = "그룹 코드 validation")
     @GetMapping("/{code}/validation")
     public BaseResponse<String> checkGroupCode(@PathVariable String code){
-        if(!groupService.isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
-        if(groupService.isFullMember(code)) throw new BaseException(BaseResponseStatus.FULL_MEMBER);
-        return new BaseResponse<>("ok");
+        if(groupService.isActiveGroupCode(code))
+            return new BaseResponse<>("ok");
+        return new BaseResponse<>("false");
     }
 
 
