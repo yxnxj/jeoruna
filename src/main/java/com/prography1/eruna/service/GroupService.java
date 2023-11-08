@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -21,6 +20,7 @@ import java.util.List;
 
 import static com.prography1.eruna.response.BaseResponseStatus.*;
 import static com.prography1.eruna.web.GroupReqDto.*;
+import static com.prography1.eruna.web.GroupResDto.*;
 
 @RequiredArgsConstructor
 @Transactional
@@ -234,5 +234,11 @@ public class GroupService {
             throw new BaseException(BaseResponseStatus.ALREADY_IN_GROUP_USER);
         if(this.isDuplicatedNickname(code, nickname)) throw new BaseException(BaseResponseStatus.DUPLICATED_NICKNAME);
 
+    }
+
+    public GroupPreview findGroupPreview(String code){
+        Integer groupMemberCount = groupMemberCountByCode(code);
+        String hostNickname = getHostNicknameByGroupCode(code);
+        return new GroupResDto.GroupPreview(groupMemberCount, hostNickname);
     }
 }

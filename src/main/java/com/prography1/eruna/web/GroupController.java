@@ -15,20 +15,11 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.prography1.eruna.web.GroupReqDto.*;
 import static com.prography1.eruna.web.GroupResDto.*;
@@ -147,10 +138,7 @@ public class GroupController {
     @Operation(summary = "그룹 멤버 수, 방장 닉네임 반환", description = "그룹 코드를 받으면 해당 그룹의 멤버 수, 방장 닉네임 반환")
     @GetMapping("/{code}/preview")
     public BaseResponse<GroupPreview> groupPreview(@PathVariable String code){
-        Integer groupMemberCount = groupService.groupMemberCountByCode(code);
-        String hostNickname = groupService.getHostNicknameByGroupCode(code);
-        GroupPreview groupPreview = new GroupPreview(groupMemberCount, hostNickname);
-        return new BaseResponse<>(groupPreview);
+        return new BaseResponse<>(groupService.findGroupPreview(code));
     }
 
     @Operation(summary = "그룹 나가기", description = "그룹 나가기")
