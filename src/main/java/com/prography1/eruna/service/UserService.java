@@ -6,18 +6,15 @@ import com.prography1.eruna.domain.entity.User;
 import com.prography1.eruna.domain.enums.AlarmSound;
 import com.prography1.eruna.domain.repository.GroupUserRepository;
 import com.prography1.eruna.domain.repository.UserRepository;
-import com.prography1.eruna.response.BaseException;
+import com.prography1.eruna.exception.UserNotFoundException;
+import com.prography1.eruna.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
-import static com.prography1.eruna.response.BaseResponseStatus.USER_NOT_FOUND;
 
 @RequiredArgsConstructor
 @Transactional
@@ -104,11 +101,11 @@ public class UserService {
     }
 
     public User findByUUID(String uuid){
-        return userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(USER_NOT_FOUND));
+        return userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("%s uuid를 갖는 user를 찾지 못했습니다.", uuid)));
     }
 
     public Long findGroupIdByUUID(String uuid) {
-        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(USER_NOT_FOUND));
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("%s uuid를 갖는 user를 찾지 못했습니다.", uuid)));
         Optional<GroupUser> groupUser = groupUserRepository.findByUser(user);
         if(groupUser.isEmpty())
             return null;

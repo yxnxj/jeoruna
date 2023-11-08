@@ -8,6 +8,7 @@ public class UserNotFoundException extends ValidationException{
     }
 
     public UserNotFoundException(BaseResponseStatus status, String message) {
-        super(status, message);
+        super(status);
+        status.setMessage(message);
     }
 }

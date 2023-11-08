@@ -2,6 +2,7 @@ package com.prography1.eruna.service;
 
 import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.repository.*;
+import com.prography1.eruna.exception.UserNotFoundException;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.web.UserResDto;
@@ -13,13 +14,11 @@ import org.quartz.SchedulerException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.prography1.eruna.response.BaseResponseStatus.NOT_FOUND_GROUP;
-import static com.prography1.eruna.response.BaseResponseStatus.USER_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -72,7 +71,7 @@ public class WakeupService {
 
     public void updateWakeupInfo(Long groupId, String uuid){
 
-        User user = userRepository.findByUuid(uuid).orElseThrow( () -> new BaseException(USER_NOT_FOUND));
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("%s uuid를 갖는 user를 찾지 못했습니다.", uuid)));
         GroupUser groupUser = groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         wakeUpCacheRepository.updateWakeupInfo(groupId, uuid, groupUser.getNickname(), groupUser.getPhoneNum());
 

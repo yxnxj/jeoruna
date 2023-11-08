@@ -1,6 +1,7 @@
 package com.prography1.eruna.response;
 
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 에러 코드 관리
@@ -50,7 +51,8 @@ public enum BaseResponseStatus {
 
     private final boolean isSuccess;
     private final int code;
-    private final String message;
+    @Setter
+    private String message;
 
     BaseResponseStatus(boolean isSuccess, int code, String message) {
         this.isSuccess = isSuccess;

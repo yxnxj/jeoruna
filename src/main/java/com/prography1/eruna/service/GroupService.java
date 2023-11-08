@@ -4,6 +4,7 @@ import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.enums.AlarmSound;
 import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
+import com.prography1.eruna.exception.UserNotFoundException;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.web.GroupResDto;
@@ -20,7 +21,7 @@ import java.util.List;
 
 import static com.prography1.eruna.response.BaseResponseStatus.*;
 import static com.prography1.eruna.web.GroupReqDto.*;
-import static com.prography1.eruna.web.GroupResDto.*;
+import static com.prography1.eruna.web.GroupResDto.GroupPreview;
 
 @RequiredArgsConstructor
 @Transactional
@@ -89,7 +90,7 @@ public class GroupService {
 
     public Long joinGroupUser(String code, String uuid, String nickname, String phoneNum){
         Groups group = findByCode(code);
-        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("%s uuid를 갖는 user를 찾지 못했습니다.", uuid)));
         if(groupUserRepository.existsByUser(user)){
             throw new BaseException(EXIST_JOIN_GROUP);
         }
@@ -166,7 +167,7 @@ public class GroupService {
     }
 
     public boolean isUserExistInGroup(String uuid, String code){
-        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(USER_NOT_FOUND));
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("%s uuid를 갖는 user를 찾지 못했습니다.", uuid)));
         Groups group = groupRepository.findByCode(code).orElseThrow(() -> new BaseException(INVALID_GROUP_CODE));
         return groupUserRepository.existsByGroupsAndUser(group, user);
 //        return userRepository.existsByUuid(uuid);
