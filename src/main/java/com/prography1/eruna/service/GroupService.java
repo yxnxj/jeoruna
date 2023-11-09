@@ -4,7 +4,7 @@ import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.enums.AlarmSound;
 import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
-import com.prography1.eruna.exception.badstate.DuplicationNicknameException;
+import com.prography1.eruna.exception.badstate.*;
 import com.prography1.eruna.exception.invalid.InvalidGroupCodeException;
 import com.prography1.eruna.exception.notfound.UserNotFoundException;
 import com.prography1.eruna.response.BaseException;
@@ -42,7 +42,8 @@ public class GroupService {
         User host = userRepository.findByUuid(createGroup.getUuid())
                 .orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", createGroup.getUuid())));
         if(groupUserRepository.existsByUser(host)){
-            throw new BaseException(EXIST_JOIN_GROUP);
+            GroupUser user = groupUserRepository.findGroupUserByUser(host).orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", createGroup.getUuid())));
+            throw new ExistJoinGroupException(EXIST_JOIN_GROUP, String.format("`%s` user는 %d group에 이미 속해있습니다.", host.getUuid(), user.getGroups().getId()));
         }
         AlarmInfo alarmInfo = createGroup.getAlarmInfo();
         Groups group = Groups.create(host);
@@ -94,7 +95,8 @@ public class GroupService {
         Groups group = findByCode(code);
         User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", uuid)));
         if(groupUserRepository.existsByUser(user)){
-            throw new BaseException(EXIST_JOIN_GROUP);
+            GroupUser gu = groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", user.getUuid())));
+            throw new ExistJoinGroupException(EXIST_JOIN_GROUP, String.format("`%s` user는 %d group에 이미 속해있습니다.", user.getUuid(), gu.getGroups().getId()));
         }
         GroupUser.GroupUserId groupUserId = GroupUser.GroupUserId.builder()
                 .groupId(group.getId())
@@ -125,7 +127,7 @@ public class GroupService {
         User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", hostUuid)));
         Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         if(!isHost(group, host)){
-            throw new BaseException(NOT_HOST);
+            throw new NotHostException(NOT_HOST);
         }
         GroupUser kickedMember = groupUserRepository.findByNickname(nickname)
                 .orElseThrow(() -> new BaseException(NOT_FOUND_GROUP_USER));
@@ -141,7 +143,7 @@ public class GroupService {
         User host = userRepository.findByUuid(alarmEdit.getUuid()).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", alarmEdit.getUuid())));
         Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         if(!isHost(group, host)){
-            throw new BaseException(NOT_HOST);
+            throw new NotHostException(NOT_HOST);
         }
         LocalTime newTime = LocalTime.of(alarmEdit.getAlarmInfo().getHours(), alarmEdit.getAlarmInfo().getMinutes());
         group.getAlarm().update(AlarmSound.valueOf(alarmEdit.getAlarmInfo().getSound()), newTime);
@@ -179,7 +181,7 @@ public class GroupService {
         User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", hostUuid)));
         Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         if(!isHost(group, host)){
-            throw new BaseException(NOT_HOST);
+            throw new NotHostException(NOT_HOST);
         }
         group.changeCode();
         groupRepository.save(group);
@@ -204,7 +206,7 @@ public class GroupService {
         GroupUser groupUser =
                 groupUserRepository.findGroupUserByUser(user).orElseThrow(()-> new BaseException(NOT_FOUND_GROUP_USER));
         if(isHost(group, user)){
-            throw new BaseException(HOST_CANNOT_EXIT);
+            throw new HostCannotExitException(HOST_CANNOT_EXIT);
         }
         if(groupUser.getGroups()==group) {
             groupUserRepository.delete(groupUser);
@@ -217,7 +219,7 @@ public class GroupService {
         User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", uuid)));
         Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         if(!isHost(group, user)){
-            throw new BaseException(NOT_HOST);
+            throw new NotHostException(NOT_HOST);
         }
         groupRepository.delete(group);
     }
@@ -234,7 +236,7 @@ public class GroupService {
         if(!this.isValidCode(code)) throw new InvalidGroupCodeException(BaseResponseStatus.INVALID_GROUP_CODE, String.format("GroupCode `%s`가 존재하지 않습니다.", code));
         if(!userRepository.existsByUuid(uuid)) throw new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("%s uuid를 갖는 user를 찾지 못했습니다.", uuid));
         if(this.isUserExistInGroup(uuid, code))
-            throw new BaseException(BaseResponseStatus.ALREADY_IN_GROUP_USER);
+            throw new AlreadyGroupUserException(BaseResponseStatus.ALREADY_IN_GROUP_USER);
         if(this.isDuplicatedNickname(code, nickname)) throw new DuplicationNicknameException(BaseResponseStatus.DUPLICATED_NICKNAME, String.format("`%s 닉네임은 이미 존재합니다.", nickname));
 
     }
@@ -247,7 +249,7 @@ public class GroupService {
 
     public boolean isActiveGroupCode(String code){
         if(!isValidCode(code)) throw new InvalidGroupCodeException(BaseResponseStatus.INVALID_GROUP_CODE, String.format("GroupCode `%s`가 존재하지 않습니다.", code));
-        if(isFullMember(code)) throw new BaseException(BaseResponseStatus.FULL_MEMBER);
+        if(isFullMember(code)) throw new FullMemberException(BaseResponseStatus.FULL_MEMBER);
 
         return true;
     }
