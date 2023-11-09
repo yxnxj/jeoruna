@@ -19,7 +19,7 @@ public enum BaseResponseStatus {
      */
     VALIDATION_ERROR(false, 2000, "입력값을 확인해주세요."),
     USER_NOT_FOUND(false, 2001, "해당 유저를 찾을 수 없습니다."),
-    INVALID_UUID_TOKEN(false,2002,"유효하지 않은 UUID 토큰입니다."),
+//    INVALID_UUID_TOKEN(false,2002,"유효하지 않은 UUID 토큰입니다."),
     INVALID_GROUP_CODE(false,2003,"유효하지 않은 그룹 코드입니다."),
     INVALID_FCM_TOKEN(false,2004,"유효하지 않은 FCM 토큰입니다."),
     DUPLICATED_NICKNAME(false,2005,"이미 존재하는 닉네임입니다."),

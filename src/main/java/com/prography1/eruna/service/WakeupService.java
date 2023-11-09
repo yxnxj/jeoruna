@@ -34,7 +34,7 @@ public class WakeupService {
 
 
     private Wakeup save(UserResDto.WakeupDto wakeupDto, Long groupId){
-        User user = userRepository.findByUuid(wakeupDto.getUuid()).orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_UUID_TOKEN));
+        User user = userRepository.findByUuid(wakeupDto.getUuid()).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", wakeupDto.getUuid())));
         Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
         Alarm alarm = alarmRepository.findByGroups(group).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_ALARM));
 

@@ -38,7 +38,7 @@ public class GroupService {
 
     public GroupResDto.CreatedGroup createGroup(CreateGroup createGroup) {
         User host = userRepository.findByUuid(createGroup.getUuid())
-                .orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+                .orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", createGroup.getUuid())));
         if(groupUserRepository.existsByUser(host)){
             throw new BaseException(EXIST_JOIN_GROUP);
         }
@@ -90,7 +90,7 @@ public class GroupService {
 
     public Long joinGroupUser(String code, String uuid, String nickname, String phoneNum){
         Groups group = findByCode(code);
-        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("%s uuid를 갖는 user를 찾지 못했습니다.", uuid)));
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", uuid)));
         if(groupUserRepository.existsByUser(user)){
             throw new BaseException(EXIST_JOIN_GROUP);
         }
@@ -120,7 +120,7 @@ public class GroupService {
 
 
     public void kickMember(Long groupId, String nickname, String hostUuid) {
-        User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+        User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", hostUuid)));
         Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         if(!isHost(group, host)){
             throw new BaseException(NOT_HOST);
@@ -136,7 +136,7 @@ public class GroupService {
     }
 
     public void editAlarm(Long groupId, AlarmEdit alarmEdit) {
-        User host = userRepository.findByUuid(alarmEdit.getUuid()).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+        User host = userRepository.findByUuid(alarmEdit.getUuid()).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", alarmEdit.getUuid())));
         Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         if(!isHost(group, host)){
             throw new BaseException(NOT_HOST);
@@ -167,14 +167,14 @@ public class GroupService {
     }
 
     public boolean isUserExistInGroup(String uuid, String code){
-        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("%s uuid를 갖는 user를 찾지 못했습니다.", uuid)));
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", uuid)));
         Groups group = groupRepository.findByCode(code).orElseThrow(() -> new BaseException(INVALID_GROUP_CODE));
         return groupUserRepository.existsByGroupsAndUser(group, user);
 //        return userRepository.existsByUuid(uuid);
     }
 
     public String reissueGroupCode(Long groupId, String hostUuid) {
-        User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+        User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", hostUuid)));
         Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         if(!isHost(group, host)){
             throw new BaseException(NOT_HOST);
@@ -197,7 +197,7 @@ public class GroupService {
     }
 
     public void exitGroup(Long groupId, String uuid) {
-        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", uuid)));
         Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         GroupUser groupUser =
                 groupUserRepository.findGroupUserByUser(user).orElseThrow(()-> new BaseException(NOT_FOUND_GROUP_USER));
@@ -212,7 +212,7 @@ public class GroupService {
     }
 
     public void deleteGroup(Long groupId, String uuid) {
-        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new BaseException(INVALID_UUID_TOKEN));
+        User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", uuid)));
         Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
         if(!isHost(group, user)){
             throw new BaseException(NOT_HOST);
@@ -230,7 +230,7 @@ public class GroupService {
 
     public void checkUserJoinException(String code, String uuid, String nickname) {
         if(!this.isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
-        if(!userRepository.existsByUuid(uuid)) throw new BaseException(BaseResponseStatus.INVALID_UUID_TOKEN);
+        if(!userRepository.existsByUuid(uuid)) throw new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("%s uuid를 갖는 user를 찾지 못했습니다.", uuid));
         if(this.isUserExistInGroup(uuid, code))
             throw new BaseException(BaseResponseStatus.ALREADY_IN_GROUP_USER);
         if(this.isDuplicatedNickname(code, nickname)) throw new BaseException(BaseResponseStatus.DUPLICATED_NICKNAME);
