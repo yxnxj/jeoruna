@@ -6,8 +6,10 @@ import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.exception.badstate.*;
 import com.prography1.eruna.exception.invalid.InvalidGroupCodeException;
+import com.prography1.eruna.exception.notfound.AlarmNotFoundException;
+import com.prography1.eruna.exception.notfound.GroupNotFoundException;
+import com.prography1.eruna.exception.notfound.GroupUserNotFoundException;
 import com.prography1.eruna.exception.notfound.UserNotFoundException;
-import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.web.GroupResDto;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.prography1.eruna.response.BaseResponseStatus.*;
 import static com.prography1.eruna.web.GroupReqDto.*;
@@ -109,7 +112,7 @@ public class GroupService {
                 .nickname(nickname)
                 .phoneNum(phoneNum)
                 .build();
-        Alarm alarm = alarmRepository.findByGroups(group).orElseThrow(() -> new BaseException(NOT_FOUND_ALARM));
+        Alarm alarm = alarmRepository.findByGroups(group).orElseThrow(() -> new AlarmNotFoundException(NOT_FOUND_ALARM, String.format("%d 그룹의 알람이 존재하지 않습니다. ", group.getId())));
         List<DayOfWeek> dayOfWeekList = dayOfWeekRepository.findAllByAlarm(alarm);
 
         alarmService.addAlarmScheduleOnCreate(alarm, groupUser, dayOfWeekList);
@@ -119,18 +122,18 @@ public class GroupService {
     }
 
     public Groups findGroupById(Long groupId) {
-        return groupRepository.findById(groupId).orElseThrow(()-> new BaseException(NOT_FOUND_GROUP));
+        return groupRepository.findById(groupId).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%d group을 찾을 수 없습니다.", groupId)));
     }
 
 
     public void kickMember(Long groupId, String nickname, String hostUuid) {
         User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", hostUuid)));
-        Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        Groups group = groupRepository.findById(groupId).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%d group을 찾을 수 없습니다.", groupId)));
         if(!isHost(group, host)){
             throw new NotHostException(NOT_HOST);
         }
         GroupUser kickedMember = groupUserRepository.findByNickname(nickname)
-                .orElseThrow(() -> new BaseException(NOT_FOUND_GROUP_USER));
+                .orElseThrow(() -> new GroupUserNotFoundException(NOT_FOUND_GROUP_USER, String.format("%d group에 %s nickname을 갖는 user를 찾을 수 없습니다.", groupId, nickname)));
 
         groupUserRepository.delete(kickedMember);
     }
@@ -141,7 +144,7 @@ public class GroupService {
 
     public void editAlarm(Long groupId, AlarmEdit alarmEdit) {
         User host = userRepository.findByUuid(alarmEdit.getUuid()).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", alarmEdit.getUuid())));
-        Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        Groups group = groupRepository.findById(groupId).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%d group을 찾을 수 없습니다.", groupId)));
         if(!isHost(group, host)){
             throw new NotHostException(NOT_HOST);
         }
@@ -179,7 +182,7 @@ public class GroupService {
 
     public String reissueGroupCode(Long groupId, String hostUuid) {
         User host = userRepository.findByUuid(hostUuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", hostUuid)));
-        Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        Groups group = groupRepository.findById(groupId).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%d group을 찾을 수 없습니다.", groupId)));
         if(!isHost(group, host)){
             throw new NotHostException(NOT_HOST);
         }
@@ -189,35 +192,35 @@ public class GroupService {
     }
 
     public Integer groupMemberCountByCode(String code) {
-        Groups group = groupRepository.findByCode(code).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        Groups group = groupRepository.findByCode(code).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%s group을 찾을 수 없습니다.", code)));
         return groupUserRepository.countByGroups(group).intValue();
     }
 
     public String getHostNicknameByGroupCode(String code) {
-        Groups group = groupRepository.findByCode(code).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        Groups group = groupRepository.findByCode(code).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%s group을 찾을 수 없습니다.", code)));
         User host = group.getHost();
-        GroupUser groupUser = groupUserRepository.findByUser(host).orElseThrow(()-> new BaseException(NOT_FOUND_GROUP_USER));
+        GroupUser groupUser = groupUserRepository.findGroupUserByUser(host).orElseThrow(() -> new GroupUserNotFoundException(NOT_FOUND_GROUP_USER, String.format("%d group에 %s uuid를 갖는 user를 찾을 수 없습니다.", group.getId(), host.getUuid())));
         return groupUser.getNickname();
     }
 
     public void exitGroup(Long groupId, String uuid) {
         User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", uuid)));
-        Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        Groups group = groupRepository.findById(groupId).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%d group을 찾을 수 없습니다.", groupId)));
         GroupUser groupUser =
-                groupUserRepository.findGroupUserByUser(user).orElseThrow(()-> new BaseException(NOT_FOUND_GROUP_USER));
+                groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new GroupUserNotFoundException(NOT_FOUND_GROUP_USER, String.format("%d group에 %s uuid를 갖는 user를 찾을 수 없습니다.", group.getId(), user.getUuid())));
         if(isHost(group, user)){
             throw new HostCannotExitException(HOST_CANNOT_EXIT);
         }
-        if(groupUser.getGroups()==group) {
+        if(Objects.equals(groupUser.getGroups().getId(), group.getId())) {
             groupUserRepository.delete(groupUser);
         }else{
-            throw new BaseException(NOT_FOUND_GROUP_USER);
+            throw new GroupUserNotFoundException(NOT_FOUND_GROUP_USER, String.format("%d group에 %s uuid를 갖는 user를 찾을 수 없습니다.", group.getId(), uuid));
         }
     }
 
     public void deleteGroup(Long groupId, String uuid) {
         User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", uuid)));
-        Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        Groups group = groupRepository.findById(groupId).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%d group을 찾을 수 없습니다.", groupId)));
         if(!isHost(group, user)){
             throw new NotHostException(NOT_HOST);
         }

@@ -2,6 +2,8 @@ package com.prography1.eruna.service;
 
 import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.repository.*;
+import com.prography1.eruna.exception.notfound.AlarmNotFoundException;
+import com.prography1.eruna.exception.notfound.GroupNotFoundException;
 import com.prography1.eruna.exception.notfound.UserNotFoundException;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
@@ -18,6 +20,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.prography1.eruna.response.BaseResponseStatus.NOT_FOUND_ALARM;
 import static com.prography1.eruna.response.BaseResponseStatus.NOT_FOUND_GROUP;
 
 @Service
@@ -35,8 +38,8 @@ public class WakeupService {
 
     private Wakeup save(UserResDto.WakeupDto wakeupDto, Long groupId){
         User user = userRepository.findByUuid(wakeupDto.getUuid()).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", wakeupDto.getUuid())));
-        Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
-        Alarm alarm = alarmRepository.findByGroups(group).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_ALARM));
+        Groups group = groupRepository.findById(groupId).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%d group을 찾을 수 없습니다.", groupId)));
+        Alarm alarm = alarmRepository.findByGroups(group).orElseThrow(() -> new AlarmNotFoundException(NOT_FOUND_ALARM, String.format("%d 그룹의 알람이 존재하지 않습니다. ", group.getId())));
 
         Wakeup wakeup = Wakeup.builder()
                 .alarm(alarm)
@@ -89,7 +92,7 @@ public class WakeupService {
          */
 
         if (list.isEmpty()) {
-            Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
+            Groups group = groupRepository.findById(groupId).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%d group을 찾을 수 없습니다.", groupId)));
             List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
             list = wakeUpCacheRepository.createGroupUsersCache(list, groupId, groupUsers);
         }

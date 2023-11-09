@@ -5,23 +5,23 @@ import com.prography1.eruna.domain.entity.Groups;
 import com.prography1.eruna.domain.repository.GroupRepository;
 import com.prography1.eruna.domain.repository.GroupUserRepository;
 import com.prography1.eruna.domain.repository.WakeUpCacheRepository;
-import com.prography1.eruna.response.BaseException;
-import com.prography1.eruna.response.BaseResponseStatus;
+import com.prography1.eruna.exception.notfound.GroupNotFoundException;
 import com.prography1.eruna.service.WakeupService;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static com.prography1.eruna.response.BaseResponseStatus.NOT_FOUND_GROUP;
 
 @Component
 @Slf4j
@@ -69,7 +69,7 @@ public class SseEmitters {
          */
 
         if (list.isEmpty()) {
-            Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
+            Groups group = groupRepository.findById(groupId).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%d group을 찾을 수 없습니다.", groupId)));
             List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
             list = wakeUpCacheRepository.createGroupUsersCache(list, groupId, groupUsers);
         }
@@ -90,7 +90,7 @@ public class SseEmitters {
          */
 
         if (list.isEmpty()) {
-            Groups group = groupRepository.findById(groupId).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
+            Groups group = groupRepository.findById(groupId).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%d group을 찾을 수 없습니다.", groupId)));
             List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
             list = wakeUpCacheRepository.createGroupUsersCache(list, groupId, groupUsers);
         }

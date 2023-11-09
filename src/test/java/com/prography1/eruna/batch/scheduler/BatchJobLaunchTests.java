@@ -10,8 +10,7 @@ import com.prography1.eruna.domain.enums.AlarmSound;
 import com.prography1.eruna.domain.enums.Role;
 import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
-import com.prography1.eruna.response.BaseException;
-import com.prography1.eruna.response.BaseResponseStatus;
+import com.prography1.eruna.exception.notfound.GroupNotFoundException;
 import com.prography1.eruna.util.scheduler.job.SendFcmJob;
 import com.prography1.eruna.web.UserResDto;
 import org.junit.jupiter.api.Assertions;
@@ -40,6 +39,7 @@ import java.time.LocalTime;
 import java.time.format.TextStyle;
 import java.util.*;
 
+import static com.prography1.eruna.response.BaseResponseStatus.NOT_FOUND_GROUP;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -207,7 +207,7 @@ public class BatchJobLaunchTests {
         List<JobKey> keys = scheduler.getJobKeys(GroupMatcher.anyGroup()).stream().toList();
         Assertions.assertEquals(size * groupUserSize, keys.size());
         for (Alarm alarm : alarms) {
-            Groups group = groupRepository.findByAlarm(alarm).orElseThrow(() -> new BaseException(BaseResponseStatus.NOT_FOUND_GROUP));
+            Groups group = groupRepository.findByAlarm(alarm).orElseThrow(()-> new GroupNotFoundException(NOT_FOUND_GROUP, String.format("%d alarm을 갖는 group을 찾을 수 없습니다.", alarm.getId())));
             List<GroupUser> groupUsers = groupUserRepository.findByGroupsForScheduler(group);
             for (GroupUser groupUser : groupUsers) {
                 users.add(groupUser.getUser());
