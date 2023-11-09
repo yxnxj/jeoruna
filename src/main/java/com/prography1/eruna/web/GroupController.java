@@ -72,6 +72,7 @@ public class GroupController {
         log.error(e.getStatus().toString());
         log.error(e.getStatus().getMessage());
         log.error(String.valueOf(e.getStatus().getCode()));
+        e.printStackTrace();
         return new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, e.getStatus().getMessage(), e);
     }
@@ -80,6 +81,7 @@ public class GroupController {
     public ResponseStatusException handleRuntimeException(RuntimeException e) {
         log.error(e.toString());
         log.error(e.getMessage());
+        e.printStackTrace();
         return new ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
     }
