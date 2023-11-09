@@ -1,5 +1,6 @@
 package com.prography1.eruna.web;
 
+import com.prography1.eruna.exception.invalid.InvalidFCMTokenException;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponse;
 import com.prography1.eruna.response.BaseResponseStatus;
@@ -40,7 +41,7 @@ public class UserController {
     public BaseResponse<String> pushMessage(@RequestBody FcmToken fcmToken){
         String token = fcmToken.getFcmToken();
         if(!userService.isValidFCMToken(token))
-            return new BaseResponse<>(BaseResponseStatus.INVALID_FCM_TOKEN);
+            throw new InvalidFCMTokenException(BaseResponseStatus.INVALID_FCM_TOKEN, String.format("`%s token 은 유효하지 않습니다.", token));
 
         String response = userService.pushMessage(token);
         return new BaseResponse<>(response);
