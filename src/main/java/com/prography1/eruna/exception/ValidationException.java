@@ -1,11 +1,13 @@
 package com.prography1.eruna.exception;
 
-import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-public class ValidationException extends BaseException {
-
-    public ValidationException(BaseResponseStatus status) {
-        super(status);
-    }
+@Setter
+@Getter
+@AllArgsConstructor
+public class ValidationException extends RuntimeException {
+    private final BaseResponseStatus status;
 }
