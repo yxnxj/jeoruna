@@ -1,7 +1,7 @@
 package com.prography1.eruna.web;
 
 import com.prography1.eruna.domain.entity.Groups;
-import com.prography1.eruna.exception.ValidationException;
+import com.prography1.eruna.exception.invalid.ValidationException;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponse;
 import com.prography1.eruna.service.GroupService;

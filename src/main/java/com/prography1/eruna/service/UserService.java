@@ -6,7 +6,7 @@ import com.prography1.eruna.domain.entity.User;
 import com.prography1.eruna.domain.enums.AlarmSound;
 import com.prography1.eruna.domain.repository.GroupUserRepository;
 import com.prography1.eruna.domain.repository.UserRepository;
-import com.prography1.eruna.exception.UserNotFoundException;
+import com.prography1.eruna.exception.notfound.UserNotFoundException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

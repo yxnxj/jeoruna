@@ -2,7 +2,7 @@ package com.prography1.eruna.service;
 
 import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.repository.*;
-import com.prography1.eruna.exception.UserNotFoundException;
+import com.prography1.eruna.exception.notfound.UserNotFoundException;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.web.UserResDto;

@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 @Getter
 @AllArgsConstructor
-public class ValidationException extends RuntimeException {
+public class BadRequestException extends RuntimeException{
     private final BaseResponseStatus status;
 }

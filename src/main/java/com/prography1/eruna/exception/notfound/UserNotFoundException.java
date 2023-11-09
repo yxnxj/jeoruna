@@ -1,8 +1,9 @@
-package com.prography1.eruna.exception;
+package com.prography1.eruna.exception.notfound;
 
+import com.prography1.eruna.exception.invalid.ValidationException;
 import com.prography1.eruna.response.BaseResponseStatus;
 
-public class UserNotFoundException extends ValidationException{
+public class UserNotFoundException extends ValidationException {
     public UserNotFoundException(BaseResponseStatus status) {
         super(status);
     }
