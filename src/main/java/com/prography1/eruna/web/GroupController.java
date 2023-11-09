@@ -1,7 +1,7 @@
 package com.prography1.eruna.web;
 
 import com.prography1.eruna.domain.entity.Groups;
-import com.prography1.eruna.exception.invalid.ValidationException;
+import com.prography1.eruna.exception.BadRequestException;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponse;
 import com.prography1.eruna.service.GroupService;
@@ -67,7 +67,7 @@ public class GroupController {
     }
 
 
-    @ExceptionHandler(ValidationException.class)
+    @ExceptionHandler(BadRequestException.class)
     public ResponseStatusException handleBaseException(BaseException e) {
         log.error(e.getStatus().toString());
         log.error(e.getStatus().getMessage());
