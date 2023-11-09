@@ -4,6 +4,7 @@ import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.enums.AlarmSound;
 import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
+import com.prography1.eruna.exception.InvalidGroupCodeException;
 import com.prography1.eruna.exception.UserNotFoundException;
 import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
@@ -80,7 +81,7 @@ public class GroupService {
     }
 
     public Groups findByCode(String code){
-        return groupRepository.findByCode(code).orElseThrow(()-> new BaseException(BaseResponseStatus.INVALID_GROUP_CODE));
+        return groupRepository.findByCode(code).orElseThrow(()-> new InvalidGroupCodeException(BaseResponseStatus.INVALID_GROUP_CODE, String.format("GroupCode `%s`가 존재하지 않습니다.", code)));
     }
 
     public boolean isDuplicatedNickname(String code, String nickname) {
@@ -168,7 +169,7 @@ public class GroupService {
 
     public boolean isUserExistInGroup(String uuid, String code){
         User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("`%s` uuid를 갖는 user를 찾지 못했습니다.", uuid)));
-        Groups group = groupRepository.findByCode(code).orElseThrow(() -> new BaseException(INVALID_GROUP_CODE));
+        Groups group = groupRepository.findByCode(code).orElseThrow(()-> new InvalidGroupCodeException(BaseResponseStatus.INVALID_GROUP_CODE, String.format("GroupCode `%s`가 존재하지 않습니다.", code)));
         return groupUserRepository.existsByGroupsAndUser(group, user);
 //        return userRepository.existsByUuid(uuid);
     }
@@ -229,7 +230,7 @@ public class GroupService {
     }
 
     public void checkUserJoinException(String code, String uuid, String nickname) {
-        if(!this.isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
+        if(!this.isValidCode(code)) throw new InvalidGroupCodeException(BaseResponseStatus.INVALID_GROUP_CODE, String.format("GroupCode `%s`가 존재하지 않습니다.", code));
         if(!userRepository.existsByUuid(uuid)) throw new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("%s uuid를 갖는 user를 찾지 못했습니다.", uuid));
         if(this.isUserExistInGroup(uuid, code))
             throw new BaseException(BaseResponseStatus.ALREADY_IN_GROUP_USER);
@@ -244,7 +245,7 @@ public class GroupService {
     }
 
     public boolean isActiveGroupCode(String code){
-        if(!isValidCode(code)) throw new BaseException(BaseResponseStatus.INVALID_GROUP_CODE);
+        if(!isValidCode(code)) throw new InvalidGroupCodeException(BaseResponseStatus.INVALID_GROUP_CODE, String.format("GroupCode `%s`가 존재하지 않습니다.", code));
         if(isFullMember(code)) throw new BaseException(BaseResponseStatus.FULL_MEMBER);
 
         return true;
