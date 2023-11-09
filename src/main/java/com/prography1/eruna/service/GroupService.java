@@ -4,6 +4,7 @@ import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.enums.AlarmSound;
 import com.prography1.eruna.domain.enums.Week;
 import com.prography1.eruna.domain.repository.*;
+import com.prography1.eruna.exception.badstate.DuplicationNicknameException;
 import com.prography1.eruna.exception.invalid.InvalidGroupCodeException;
 import com.prography1.eruna.exception.notfound.UserNotFoundException;
 import com.prography1.eruna.response.BaseException;
@@ -234,7 +235,7 @@ public class GroupService {
         if(!userRepository.existsByUuid(uuid)) throw new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("%s uuid를 갖는 user를 찾지 못했습니다.", uuid));
         if(this.isUserExistInGroup(uuid, code))
             throw new BaseException(BaseResponseStatus.ALREADY_IN_GROUP_USER);
-        if(this.isDuplicatedNickname(code, nickname)) throw new BaseException(BaseResponseStatus.DUPLICATED_NICKNAME);
+        if(this.isDuplicatedNickname(code, nickname)) throw new DuplicationNicknameException(BaseResponseStatus.DUPLICATED_NICKNAME, String.format("`%s 닉네임은 이미 존재합니다.", nickname));
 
     }
 
