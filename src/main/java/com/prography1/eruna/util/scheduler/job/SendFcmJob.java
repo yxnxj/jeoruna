@@ -3,7 +3,7 @@ package com.prography1.eruna.util.scheduler.job;
 import com.prography1.eruna.domain.entity.Alarm;
 import com.prography1.eruna.domain.entity.User;
 import com.prography1.eruna.domain.enums.AlarmSound;
-import com.prography1.eruna.response.BaseException;
+import com.prography1.eruna.exception.SchedulerException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -41,9 +41,9 @@ public class SendFcmJob implements Job {
                 scheduler.deleteJob(jobKey);
                 log.warn("fcmToken : " + fcmToken + "is not valid");
                 log.warn("jobKey : " + jobKey.getName() + "schedule is deleted");
-            } catch (SchedulerException e) {
+            } catch (org.quartz.SchedulerException e) {
                 log.error("SCHEDULER ERROR : " + e.getMessage());
-                throw new BaseException(BaseResponseStatus.SCHEDULER_ERROR);
+                throw new SchedulerException(BaseResponseStatus.SCHEDULER_ERROR);
             }
         }
         userService.pushMessage(fcmToken, alarmSound.getFilename());

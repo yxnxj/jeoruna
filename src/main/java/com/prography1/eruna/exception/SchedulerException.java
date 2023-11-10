@@ -1,5 +1,6 @@
-package com.prography1.eruna.response;
+package com.prography1.eruna.exception;
 
+import com.prography1.eruna.response.BaseResponseStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,6 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class BaseException extends Exception {
+public class SchedulerException extends RuntimeException {
     private final BaseResponseStatus status;
 }

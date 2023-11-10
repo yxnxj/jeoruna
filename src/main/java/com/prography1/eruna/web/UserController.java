@@ -1,7 +1,7 @@
 package com.prography1.eruna.web;
 
 import com.prography1.eruna.exception.invalid.InvalidFCMTokenException;
-import com.prography1.eruna.response.BaseException;
+import com.prography1.eruna.exception.SchedulerException;
 import com.prography1.eruna.response.BaseResponse;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.service.UserService;
@@ -48,8 +48,8 @@ public class UserController {
     }
 
 
-    @ExceptionHandler(BaseException.class)
-    public BaseResponse<String> handleBaseException(BaseException e) {
+    @ExceptionHandler(SchedulerException.class)
+    public BaseResponse<String> handleBaseException(SchedulerException e) {
         log.info(e.getStatus().toString());
         return new BaseResponse<>(e.getStatus());
     }

@@ -1,19 +1,12 @@
 package com.prography1.eruna.domain.repository;
 
 import com.prography1.eruna.domain.entity.GroupUser;
-import com.prography1.eruna.domain.entity.Groups;
-import com.prography1.eruna.domain.entity.User;
-import com.prography1.eruna.domain.entity.Wakeup;
-import com.prography1.eruna.response.BaseException;
-import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.util.RedisGenKey;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;

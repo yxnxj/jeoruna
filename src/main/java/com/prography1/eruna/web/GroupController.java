@@ -2,7 +2,7 @@ package com.prography1.eruna.web;
 
 import com.prography1.eruna.domain.entity.Groups;
 import com.prography1.eruna.exception.BadRequestException;
-import com.prography1.eruna.response.BaseException;
+import com.prography1.eruna.exception.SchedulerException;
 import com.prography1.eruna.response.BaseResponse;
 import com.prography1.eruna.service.GroupService;
 import com.prography1.eruna.service.UserService;
@@ -68,7 +68,7 @@ public class GroupController {
 
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseStatusException handleBaseException(BaseException e) {
+    public ResponseStatusException handleBaseException(SchedulerException e) {
         log.error(e.getStatus().toString());
         log.error(e.getStatus().getMessage());
         log.error(String.valueOf(e.getStatus().getCode()));

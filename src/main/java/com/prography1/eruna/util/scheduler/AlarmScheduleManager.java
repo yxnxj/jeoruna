@@ -1,6 +1,6 @@
 package com.prography1.eruna.util.scheduler;
 
-import com.prography1.eruna.response.BaseException;
+import com.prography1.eruna.exception.SchedulerException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.util.scheduler.job.JobConfig;
 import com.prography1.eruna.util.scheduler.job.JobWithDataConfig;
@@ -24,9 +24,9 @@ public class AlarmScheduleManager implements SchedulerManager{
 
         try{
             scheduler.scheduleJob(job, jobConfig.getTrigger());
-        }catch (SchedulerException e){
+        }catch (org.quartz.SchedulerException e){
             log.error("SCHEDULER ERROR : " + e.getMessage());
-            throw new BaseException(BaseResponseStatus.SCHEDULER_ERROR);
+            throw new org.quartz.SchedulerException(BaseResponseStatus.SCHEDULER_ERROR);
         }
     }
 
@@ -40,9 +40,9 @@ public class AlarmScheduleManager implements SchedulerManager{
 
         try{
             scheduler.scheduleJob(job, jobConfig.getTrigger());
-        }catch (SchedulerException e){
+        }catch (org.quartz.SchedulerException e){
             log.error("SCHEDULER ERROR : " + e.getMessage());
-            throw new BaseException(BaseResponseStatus.SCHEDULER_ERROR);
+            throw new SchedulerException(BaseResponseStatus.SCHEDULER_ERROR);
         }
     }
 
@@ -52,9 +52,9 @@ public class AlarmScheduleManager implements SchedulerManager{
             if(scheduler.checkExists(jobKey)) {
                 scheduler.deleteJob(jobKey);
             }
-        } catch (SchedulerException e) {
+        } catch (org.quartz.SchedulerException e) {
             log.error("SCHEDULER ERROR : " + e.getMessage());
-            throw new BaseException(BaseResponseStatus.SCHEDULER_ERROR);
+            throw new SchedulerException(BaseResponseStatus.SCHEDULER_ERROR);
         }
     }
 }
