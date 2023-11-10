@@ -19,18 +19,18 @@ public class DayOfWeekRowMapper implements RowMapper<DayOfWeek> {
 
     @Override
     public DayOfWeek mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Long alarmId = rs.getLong("alarm_id");
-        Alarm alarm = alarmRepository.findById(alarmId).orElseThrow(() -> new BaseException(BaseResponseStatus.DATABASE_ERROR));
-        DayOfWeek.DayOfWeekId dayOfWeekId = DayOfWeek.DayOfWeekId.builder()
-                .alarmId(alarmId)
-                .day(Week.valueOf(rs.getString("day")))
-                .build();
-
-        DayOfWeek dayOfWeek = DayOfWeek.builder()
-                .dayOfWeekId(dayOfWeekId)
-                .alarm(alarm)
-                .build();
-
-        return dayOfWeek;
+//        Long alarmId = rs.getLong("alarm_id");
+//        Alarm alarm = alarmRepository.findById(alarmId).orElseThrow(() -> new BaseException(BaseResponseStatus.DATABASE_ERROR));
+//        DayOfWeek.DayOfWeekId dayOfWeekId = DayOfWeek.DayOfWeekId.builder()
+//                .alarmId(alarmId)
+//                .day(Week.valueOf(rs.getString("day")))
+//                .build();
+//
+//        DayOfWeek dayOfWeek = DayOfWeek.builder()
+//                .dayOfWeekId(dayOfWeekId)
+//                .alarm(alarm)
+//                .build();
+//
+//        return dayOfWeek;
     }
 }

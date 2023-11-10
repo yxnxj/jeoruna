@@ -4,8 +4,8 @@ import com.prography1.eruna.domain.entity.*;
 import com.prography1.eruna.domain.repository.*;
 import com.prography1.eruna.exception.notfound.AlarmNotFoundException;
 import com.prography1.eruna.exception.notfound.GroupNotFoundException;
+import com.prography1.eruna.exception.notfound.GroupUserNotFoundException;
 import com.prography1.eruna.exception.notfound.UserNotFoundException;
-import com.prography1.eruna.response.BaseException;
 import com.prography1.eruna.response.BaseResponseStatus;
 import com.prography1.eruna.web.UserResDto;
 import lombok.RequiredArgsConstructor;
@@ -75,7 +75,7 @@ public class WakeupService {
     public void updateWakeupInfo(Long groupId, String uuid){
 
         User user = userRepository.findByUuid(uuid).orElseThrow(() -> new UserNotFoundException(BaseResponseStatus.USER_NOT_FOUND, String.format("%s uuid를 갖는 user를 찾지 못했습니다.", uuid)));
-        GroupUser groupUser = groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new BaseException(NOT_FOUND_GROUP));
+        GroupUser groupUser = groupUserRepository.findGroupUserByUser(user).orElseThrow(() -> new GroupUserNotFoundException(NOT_FOUND_GROUP,String.format("%d group에 %s uuid를 갖는 user를 찾지 못했습니다.", groupId, uuid)));
         wakeUpCacheRepository.updateWakeupInfo(groupId, uuid, groupUser.getNickname(), groupUser.getPhoneNum());
 
         if(wakeUpCacheRepository.isAllWakeup(groupId)) {
