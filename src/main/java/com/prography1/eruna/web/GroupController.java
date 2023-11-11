@@ -69,10 +69,10 @@ public class GroupController {
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseStatusException handleBaseException(SchedulerException e) {
-        log.error(e.getStatus().toString());
-        log.error(e.getStatus().getMessage());
-        log.error(String.valueOf(e.getStatus().getCode()));
-        e.printStackTrace();
+        log.warn(e.getStatus().toString());
+        log.warn(e.getStatus().getMessage());
+        log.warn(String.valueOf(e.getStatus().getCode()));
+//        e.printStackTrace();
         return new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, e.getStatus().getMessage(), e);
     }
