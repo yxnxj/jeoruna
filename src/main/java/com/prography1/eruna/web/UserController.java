@@ -48,9 +48,5 @@ public class UserController {
     }
 
 
-    @ExceptionHandler(SchedulerException.class)
-    public BaseResponse<String> handleBaseException(SchedulerException e) {
-        log.info(e.getStatus().toString());
-        return new BaseResponse<>(e.getStatus());
-    }
+
 }

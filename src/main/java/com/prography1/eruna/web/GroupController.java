@@ -1,8 +1,6 @@
 package com.prography1.eruna.web;
 
 import com.prography1.eruna.domain.entity.Groups;
-import com.prography1.eruna.exception.BadRequestException;
-import com.prography1.eruna.exception.SchedulerException;
 import com.prography1.eruna.response.BaseResponse;
 import com.prography1.eruna.service.GroupService;
 import com.prography1.eruna.service.UserService;
@@ -16,10 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -31,7 +26,6 @@ import static com.prography1.eruna.web.GroupResDto.*;
 @RequiredArgsConstructor
 @Tag(name="Group",description = "알람 그룹 API")
 @RequestMapping("/group")
-@Slf4j
 public class GroupController {
 
     private final GroupService groupService;
@@ -67,24 +61,6 @@ public class GroupController {
     }
 
 
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseStatusException handleBaseException(SchedulerException e) {
-        log.warn(e.getStatus().toString());
-        log.warn(e.getStatus().getMessage());
-        log.warn(String.valueOf(e.getStatus().getCode()));
-//        e.printStackTrace();
-        return new ResponseStatusException(
-                HttpStatus.BAD_REQUEST, e.getStatus().getMessage(), e);
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseStatusException handleRuntimeException(RuntimeException e) {
-        log.error(e.toString());
-        log.error(e.getMessage());
-        e.printStackTrace();
-        return new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
-    }
 
     @Operation(summary = "닉네임 중복 확인", description = "참여하려는 그룹에 중복된 닉네임이 있는지 확인한다.",
             responses =

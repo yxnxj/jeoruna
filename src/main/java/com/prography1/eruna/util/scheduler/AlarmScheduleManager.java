@@ -26,7 +26,7 @@ public class AlarmScheduleManager implements SchedulerManager{
             scheduler.scheduleJob(job, jobConfig.getTrigger());
         }catch (org.quartz.SchedulerException e){
             log.error("SCHEDULER ERROR : " + e.getMessage());
-            throw new org.quartz.SchedulerException(BaseResponseStatus.SCHEDULER_ERROR);
+            throw new SchedulerException(BaseResponseStatus.SCHEDULER_ERROR);
         }
     }
 
